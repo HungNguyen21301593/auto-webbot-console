@@ -1,0 +1,28 @@
+{
+  "Credential": {
+    "Email": "hungnguyen21301593@gmail.com",
+    "Pass": "ObayaShi21301593!@"
+  },
+  "OutputFilePrefix": "output-",
+  "Filter": {
+    "FixedPriceProjects": {
+      "Check": true,
+      "Min": 0,
+      "Max": 100
+    },
+    "HourlyProjects": {
+      "Check": true,
+      "Min": 0,
+      "Max": 10
+    },
+    "Duration": "Less than 1 week",
+    "Contests": {
+      "Check": true,
+      "Min": 0,
+      "Max": 100
+    },
+    "Type": "Local Jobs",
+    "Skills": ". Net",
+    "Languages": "English"
+  }
+}
