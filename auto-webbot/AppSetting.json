@@ -1,28 +1,31 @@
 {
-  "Credential": {
-    "Email": "hungnguyen21301593@gmail.com",
-    "Pass": "ObayaShi21301593!@"
+  "UserSettings": [
+    {
+      "Email": "hungnguyen21301593@gmail.com",
+      "Pass": "ObayaShi21301593!@"
+    }
+  ],
+  "ErrorEmail": {
+    "Sender": "nh4682822@gmail.com", // test account for sender
+    "PassForSender": "Hung123!@", // test account for sender
+    "Receivers": [ "hungnguyen21301593@gmail.com", "blessme@protonmail.com" ] // add emails of recervers here
   },
   "OutputFilePrefix": "output-",
-  "Filter": {
-    "FixedPriceProjects": {
-      "Check": true,
-      "Min": 0,
-      "Max": 100
+  "Mode": 1, // test:0 (run but dont post, delete), run: 1 (real run)
+  "AdGlobalSetting": {
+    "Position": {
+      "From": 0,
+      "To": 100
     },
-    "HourlyProjects": {
-      "Check": true,
-      "Min": 0,
-      "Max": 10
-    },
-    "Duration": "Less than 1 week",
-    "Contests": {
-      "Check": true,
-      "Min": 0,
-      "Max": 100
-    },
-    "Type": "Local Jobs",
-    "Skills": ". Net",
-    "Languages": "English"
+    "PauseDuringRun": false,
+    "Sleep": {
+      "ScanEvery": 30,
+      "DelayBetweenEachRead": 1,
+      "DelayAfterAllRead": 10,
+      "DelayBetweenEachDelete": 1,
+      "DelayAfterAllDeleted": 10,
+      "DelayAfterEachPost": 1,
+      "DelayAfterAllPost": 10
+    }
   }
 }

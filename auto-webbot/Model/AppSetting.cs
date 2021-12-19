@@ -2,47 +2,63 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AutoBot.Model
+namespace auto_webbot.Model
 {
-    class AppSetting
+    public class AppSetting
     {
-        public Credential Credential { get; set; }
+        public List<UserSetting> UserSettings { get; set; }
+        public ErrorEmailSetting ErrorEmail {get;set;}
         public string OutputFilePrefix { get; set; }
-        public Filter Filter { get; set; }
-    }
-    class Filter
-    {
-        public FixedPriceProjects FixedPriceProjects { get; set; }
-        public HourlyProjects HourlyProjects { get; set; }
-        public string Duration { get; set; }
-        public Contests Contests { get; set; }
-        public string Type { get; set; }
-        public string Skills { get; set; }
-        public string English { get; set; }
-    }
-    class FixedPriceProjects
-    {
-        public bool Check { get; set; }
-        public decimal Min { get; set; }
-        public decimal Max { get; set; }
+        public AdGlobalSetting AdGlobalSetting { get; set; }
+        public Mode Mode { get; set; }
     }
 
-    class HourlyProjects
-    {
-        public bool Check { get; set; }
-        public decimal Min { get; set; }
-        public decimal Max { get; set; }
-    }
-
-    class Contests
-    {
-        public bool Check { get; set; }
-        public decimal Min { get; set; }
-        public decimal Max { get; set; }
-    }
-    class Credential
+    public class UserSetting
     {
         public string Email { get; set; }
         public string Pass { get; set; }
+    }
+    public enum BrowserSetting
+    { 
+        chrome,
+        firefox,
+        internetexplorer
+    }
+
+    public class AdGlobalSetting
+    {
+        public SleepSetting Sleep { get; set; }
+        public Position Position { get; set; }
+        public bool PauseDuringRun { get; set; }
+    }
+
+    public enum Mode
+    { 
+        test,
+        run
+    }
+
+    public class SleepSetting
+    {
+        public int ScanEvery { get; set; }
+        public int DelayBetweenEachRead { get; set; }
+        public int DelayAfterAllRead { get; set; }
+        public int DelayBetweenEachDelete { get; set; }
+        public int DelayAfterAllDeleted { get; set; } 
+        public int DelayAfterEachPost { get; set; }
+        public int DelayAfterAllPost { get; set; }
+    }
+
+    public class Position
+    {
+        public int From { get; set; }
+        public int To { get; set; }
+    }
+
+    public class ErrorEmailSetting
+    {
+        public string Sender { get; set; }
+        public string PassForSender { get; set; }
+        public List<string> Receivers { get; set; }
     }
 }
