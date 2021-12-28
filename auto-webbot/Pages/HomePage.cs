@@ -47,6 +47,7 @@ namespace auto_webbot.Pages
 
         public void PostAds(List<AdDetails> adDetails)
         {
+            Random random = new Random();
             var exceptionMessages = new List<string>();
             foreach (var adDetail in adDetails)
             {
@@ -58,7 +59,8 @@ namespace auto_webbot.Pages
                     SubmitAdTitle(adDetail);
                     Thread.Sleep(1000);
                     InputAdDetails(adDetail);
-                    Thread.Sleep(config.AdGlobalSetting.Sleep.DelayAfterEachPost);
+                    Thread.Sleep(TimeSpan.FromMinutes(random.Next(config.AdGlobalSetting.Sleep.DelayAfterEachPost.From, 
+                        config.AdGlobalSetting.Sleep.DelayAfterEachPost.To)));
                 }
                 catch (Exception e)
                 {

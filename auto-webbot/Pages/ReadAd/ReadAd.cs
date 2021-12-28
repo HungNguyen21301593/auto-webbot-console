@@ -76,11 +76,8 @@ namespace auto_webbot.Pages.Delete
         private void LoadReadPage( out ReadOnlyCollection<IWebElement> ImageTitles)
         {
             webDriver.Navigate().GoToUrl("https://www.kijiji.ca/m-my-ads/active");
-            ImageTitles = WebWaiter
-            .Until(SeleniumExtras
-            .WaitHelpers
-            .ExpectedConditions
-            .VisibilityOfAllElementsLocatedBy(ImageTitleLocator));
+            Thread.Sleep(2000);
+            ImageTitles = webDriver.FindElements(ImageTitleLocator);
         }
 
         private AdDetails ReadSingleAd()
@@ -253,10 +250,8 @@ namespace auto_webbot.Pages.Delete
 
         private void ReadTags(AdDetails adDetails)
         {
-            var tags = WebWaiter.Until(SeleniumExtras
-                                .WaitHelpers
-                                .ExpectedConditions
-                                .VisibilityOfAllElementsLocatedBy(tagsLocators));
+            Thread.Sleep(1000);
+            var tags = webDriver.FindElements(tagsLocators);
             if (tags.Any())
             {
                 adDetails.Tags = new List<string>();

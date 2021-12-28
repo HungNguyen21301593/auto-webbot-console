@@ -241,6 +241,7 @@ namespace auto_webbot.Pages.Post
                                     .WaitHelpers
                                     .ExpectedConditions
                                     .ElementIsVisible(addressLocator));
+                addressElement.Clear();
                 addressElement.SendKeys(adDetails.Address);
                 Thread.Sleep(2000);
                 var addressElementFirst = WebWaiter
@@ -337,7 +338,7 @@ namespace auto_webbot.Pages.Post
                     MoreInfo.Click();
                 }
             }
-
+            
             private void Post()
             {
                 Thread.Sleep(2000);

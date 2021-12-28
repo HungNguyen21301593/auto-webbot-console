@@ -17,7 +17,18 @@ namespace auto_webbot.Model
     {
         public string Email { get; set; }
         public string Pass { get; set; }
+        public string UserAgent { get; set; }
+        public Proxy Proxy { get; set; }
     }
+
+    public class Proxy
+    {
+        public string Host { get; set; }
+        public int Port { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+    }
+
     public enum BrowserSetting
     { 
         chrome,
@@ -40,13 +51,20 @@ namespace auto_webbot.Model
 
     public class SleepSetting
     {
-        public int ScanEvery { get; set; }
+        public List<ScanEvery> ScanEvery { get; set; }
+        public int ScanWhenFoundNothing { get; set; }
         public int DelayBetweenEachRead { get; set; }
         public int DelayAfterAllRead { get; set; }
         public int DelayBetweenEachDelete { get; set; }
         public int DelayAfterAllDeleted { get; set; } 
-        public int DelayAfterEachPost { get; set; }
+        public RandomDelay DelayAfterEachPost { get; set; }
         public int DelayAfterAllPost { get; set; }
+    }
+
+    public class RandomDelay
+    {
+        public int From { get; set; }
+        public int To { get; set; }
     }
 
     public class Position
@@ -60,5 +78,12 @@ namespace auto_webbot.Model
         public string Sender { get; set; }
         public string PassForSender { get; set; }
         public List<string> Receivers { get; set; }
+    }
+
+    public class ScanEvery
+    { 
+        public DayOfWeek DayOfWeek { get; set; }
+        public int RandomFrom { get; set; }
+        public int RandomTo { get; set; }
     }
 }

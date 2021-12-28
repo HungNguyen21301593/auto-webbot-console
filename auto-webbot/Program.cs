@@ -4,6 +4,7 @@ using auto_webbot.Pages.Delete;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Chrome.ChromeDriverExtensions;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
 using System;
@@ -20,6 +21,7 @@ namespace AutoBot
     {
         private static IWebDriver GlobalWebDriver;
         private static WebDriverWait WebWaiter => new WebDriverWait(GlobalWebDriver, TimeSpan.FromSeconds(60));
+        private static Random random = new Random();
 
         static void Main(string[] args)
         {
@@ -31,12 +33,12 @@ namespace AutoBot
 
             while (true)
             {
-                GlobalWebDriver = SetupDriver();
-                var homePage = new HomePage(GlobalWebDriver, Config);
                 foreach (var userSetting in Config.UserSettings)
                 {
                     try
                     {
+                        GlobalWebDriver = SetupDriver(userSetting);
+                        var homePage = new HomePage(GlobalWebDriver, Config);
                         LoginAndWait(userSetting, homePage);
                         var readAdPage = new ReadAdPage(GlobalWebDriver);
                         adDetails = readAdPage.ReadAds(Config.AdGlobalSetting);
@@ -44,7 +46,9 @@ namespace AutoBot
                         {
                             Console.WriteLine($"Could not find any Ads from {Config.AdGlobalSetting.Position.From}" +
                                 $" to {Config.AdGlobalSetting.Position.To}");
-                            Thread.Sleep(TimeSpan.FromMinutes(1));
+                            Console.WriteLine($"Wait ScanWhenFoundNothing {Config.AdGlobalSetting.Sleep.ScanWhenFoundNothing} minutes");
+                            Thread.Sleep(TimeSpan.FromMinutes(Config.AdGlobalSetting.Sleep.ScanWhenFoundNothing));
+                            GlobalWebDriver.Quit();
                             continue;
                         }
                         Console.WriteLine("******************************************************");
@@ -83,19 +87,37 @@ namespace AutoBot
                         }
                         Console.WriteLine($"Wait DelayAfterAllPost {Config.AdGlobalSetting.Sleep.DelayAfterAllPost} minutes");
                         Thread.Sleep(TimeSpan.FromMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllPost));
-                        Console.WriteLine($"Wait ScanEvery {Config.AdGlobalSetting.Sleep.ScanEvery} minutes");
-                        Thread.Sleep(TimeSpan.FromMinutes(Config.AdGlobalSetting.Sleep.ScanEvery));
+
+                        var scanValue = GetRandomScanEvery(Config.AdGlobalSetting.Sleep.ScanEvery);
+                        Console.WriteLine($"Wait ScanEvery {scanValue} minutes");
+                        Thread.Sleep(TimeSpan.FromMinutes(scanValue));
                         GlobalWebDriver.Quit();
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine($"Something went wrong | {e.Message} | {e.StackTrace}");
                         SendErrorEmails(Config, adDetails, e);
+                        GlobalWebDriver.Quit();
                         continue;
                     }
                 }
             }
         }
+
+        private static int GetRandomScanEvery(List<ScanEvery> scanEverys)
+        {
+            var timeUtc = DateTime.UtcNow;
+            TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
+            var scanSetting =  scanEverys.Where(s => s.DayOfWeek == easternTime.DayOfWeek).FirstOrDefault();
+            if (scanSetting is null)
+            {
+                throw new Exception($"Could not found scan setting for {easternTime.DayOfWeek}");
+            }
+            return random.Next(scanSetting.RandomFrom, scanSetting.RandomTo);
+        }
+
+        
 
         private static void SendErrorEmails(AppSetting Config, List<AdDetails> adDetails, Exception e)
         {
@@ -122,7 +144,7 @@ namespace AutoBot
             Thread.Sleep(15000);
         }
 
-        private static IWebDriver SetupDriver()
+        private static IWebDriver SetupDriver(UserSetting userSetting)
         {
             var chromeArguments = new List<string> {
                 "--disable-notifications",
@@ -136,10 +158,23 @@ namespace AutoBot
                 "--disable-logging",
                 "--disable-popup-blocking",
                 "disable-blink-features=AutomationControlled",
-                "--log-level=3"
+                "--log-level=3",
             };
+
+            if (userSetting.UserAgent != null)
+            {
+                chromeArguments.Add($"--user-agent={userSetting.UserAgent}");
+            }
             var options = new ChromeOptions();
             options.AddArguments(chromeArguments);
+            if (userSetting.Proxy != null
+                && userSetting.Proxy.Host != null
+                && userSetting.Proxy.Port != 0
+                && userSetting.Proxy.UserName != null
+                && userSetting.Proxy.Password != null)
+            {
+                options.AddHttpProxy(userSetting.Proxy.Host, userSetting.Proxy.Port, userSetting.Proxy.UserName, userSetting.Proxy.Password);
+            }
             options.AddExcludedArgument("enable-automation");
             options.AddAdditionalOption("useAutomationExtension", false);
             return new ChromeDriver(options);
