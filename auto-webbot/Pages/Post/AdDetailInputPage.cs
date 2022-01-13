@@ -23,7 +23,7 @@ namespace auto_webbot.Pages.Post
                 this.webDriver = webDriver;
                 this.config = config;
             }
-            private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(20));
+            private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
             private By DescriptionLocaltor = By.Id("pstad-descrptn");
             private By FileInputWrapper = By.ClassName("imageUploadButtonWrapper");
             private By ChangeLocationButtonLocator = By.XPath("//*[text()='Change']");
@@ -41,103 +41,103 @@ namespace auto_webbot.Pages.Post
             {
                 if (adDetails.Description != null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     InputDesciption(adDetails);
                     Console.WriteLine("InputDesciption");
                 }
                 if (adDetails.AdType != null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     SelectAdtype(adDetails);
                     Console.WriteLine("SelectAdtype");
                 }
                 if (adDetails.ForSaleBy != null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     SelectForSaleBy(adDetails);
                     Console.WriteLine("SelectForSaleBy");
                 }
                 if (adDetails.MoreInfo != null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     SelectMoreInfo(adDetails);
                     Console.WriteLine("SelectMoreInfo");
                 }
                 if (adDetails.Fulfillments.Any())
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     SelectFulfillment(adDetails);
                     Console.WriteLine("SelectFulfillment");
                 }
                 if (adDetails.Payments.Any())
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     SelectPayment(adDetails);
                     Console.WriteLine("SelectFulfillment");
                 }
                 if (adDetails.Tags.Any())
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     SelectTags(adDetails);
                     Console.WriteLine("SelectTags");
                 }
                 if (adDetails.InputPicturePaths.Any())
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     InputPicture(adDetails);
                     Console.WriteLine("InputPicture");
                 }
                 if (adDetails.Location != null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     InputLocation(adDetails.Location);
                     Console.WriteLine("InputLocation");
                 }
                 if (adDetails.Address != null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     InputAddress(adDetails);
                     Console.WriteLine("InputAddress");
                 }
                 if (adDetails.Price != 0)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     InputPrice(adDetails);
                     Console.WriteLine("InputPrice");
                 }
                 if (adDetails.Company != null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     InputCompany(adDetails);
                     Console.WriteLine("InputCompany");
                 }
                 if (adDetails.DynamicTextOptions.Any())
                 {
                     InputDynamicInputs(adDetails);
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     Console.WriteLine("InputDynamicInputs");
                     InputDynamicSelectOptions(adDetails);
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     Console.WriteLine("InputDynamicSelectOptions");
                 }
 
                 if (adDetails.CarYear != null)
                 {
                     InputCarYear(adDetails);
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     Console.WriteLine("InputCarYear");
                 }
 
                 if (adDetails.CarKm != null)
                 {
                     InputCarKm(adDetails);
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     Console.WriteLine("InputCarKm");
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 SelectBasicPakage();
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 if (config.Mode == Mode.test)
                 {
                     Console.WriteLine("App is in testing node, so no ad will be actual posted");
@@ -171,7 +171,7 @@ namespace auto_webbot.Pages.Post
 
             private void InputDynamicSelectOptions(AdDetails adDetails)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var selects = webDriver.FindElements(By.TagName("select"));
                 if (selects.Any())
                 {
@@ -187,10 +187,10 @@ namespace auto_webbot.Pages.Post
                                 {
                                     if (element.Text.Equals(dynamicText))
                                     {
-                                        Thread.Sleep(1000);
+                                        Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                                         element.Click();
                                         Console.WriteLine($"Selected |{dynamicText}| on {select.GetAttribute("name")}");
-                                        Thread.Sleep(1000);
+                                        Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                                     }
                                 }
                             }
@@ -201,7 +201,7 @@ namespace auto_webbot.Pages.Post
                         }
                     }
                 }
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             }
 
             private void InputCompany(AdDetails adDetails)
@@ -216,7 +216,7 @@ namespace auto_webbot.Pages.Post
 
             private void InputCarYear(AdDetails adDetails)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var elements = webDriver.FindElements(carYearLocator);
                 if (elements.Any())
                 {
@@ -226,7 +226,7 @@ namespace auto_webbot.Pages.Post
 
             private void InputCarKm(AdDetails adDetails)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var elements = webDriver.FindElements(carKmLocator);
                 if (elements.Any())
                 {
@@ -243,7 +243,7 @@ namespace auto_webbot.Pages.Post
                                     .ElementIsVisible(addressLocator));
                 addressElement.Clear();
                 addressElement.SendKeys(adDetails.Address);
-                Thread.Sleep(2000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var addressElementFirst = WebWaiter
                                .Until(SeleniumExtras
                                    .WaitHelpers
@@ -254,7 +254,7 @@ namespace auto_webbot.Pages.Post
 
             private void SelectTags(AdDetails adDetails)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var inputTag = WebWaiter
                 .Until(SeleniumExtras
                     .WaitHelpers
@@ -271,7 +271,7 @@ namespace auto_webbot.Pages.Post
             {
                 foreach (var payment in adDetails.Payments)
                 {
-                    Thread.Sleep(2000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     var Payment = WebWaiter
                     .Until(SeleniumExtras
                         .WaitHelpers
@@ -285,7 +285,7 @@ namespace auto_webbot.Pages.Post
             {
                 foreach (var Fulfillment in adDetails.Fulfillments)
                 {
-                    Thread.Sleep(2000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     var input = WebWaiter
                     .Until(SeleniumExtras
                         .WaitHelpers
@@ -297,7 +297,7 @@ namespace auto_webbot.Pages.Post
 
             private void SelectAdtype(AdDetails adDetails)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var adtype = WebWaiter
                 .Until(SeleniumExtras
                     .WaitHelpers
@@ -308,7 +308,7 @@ namespace auto_webbot.Pages.Post
 
             private void SelectForSaleBy(AdDetails adDetails)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var forSaleBy = WebWaiter
                 .Until(SeleniumExtras
                     .WaitHelpers
@@ -329,7 +329,7 @@ namespace auto_webbot.Pages.Post
                     .ElementIsVisible(By.Id("moreinfo_s")));
                     select.Click();
 
-                    Thread.Sleep(2000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     var MoreInfo = WebWaiter
                     .Until(SeleniumExtras
                         .WaitHelpers
@@ -341,7 +341,7 @@ namespace auto_webbot.Pages.Post
             
             private void Post()
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var post = WebWaiter
                 .Until(SeleniumExtras
                     .WaitHelpers
@@ -352,7 +352,7 @@ namespace auto_webbot.Pages.Post
 
             private void InputPrice(AdDetails adDetails)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var price = WebWaiter
                 .Until(SeleniumExtras
                     .WaitHelpers
@@ -369,9 +369,9 @@ namespace auto_webbot.Pages.Post
                 foreach (var path in adDetails.InputPicturePaths)
                 {
                     updatefile.SendKeys(path);
-                    Thread.Sleep(2000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 }
-                Thread.Sleep(2000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             }
 
             private void InputDesciption(AdDetails adDetails)

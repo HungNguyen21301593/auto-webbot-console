@@ -5,7 +5,6 @@ using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome.ChromeDriverExtensions;
-using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
@@ -20,7 +19,7 @@ namespace AutoBot
     class Program
     {
         private static IWebDriver GlobalWebDriver;
-        private static WebDriverWait WebWaiter => new WebDriverWait(GlobalWebDriver, TimeSpan.FromSeconds(60));
+        private static WebDriverWait WebWaiter => new WebDriverWait(GlobalWebDriver, TimeSpan.FromSeconds(120));
         private static Random random = new Random();
 
         static void Main(string[] args)
@@ -37,18 +36,20 @@ namespace AutoBot
                 {
                     try
                     {
-                        GlobalWebDriver = SetupDriver(userSetting);
+                        GlobalWebDriver = SetupDriver(userSetting, Config);
+                        GlobalWebDriver.Manage().Timeouts().PageLoad = TimeSpan.FromMinutes(Config.AdGlobalSetting.Timeout);
                         var homePage = new HomePage(GlobalWebDriver, Config);
-                        LoginAndWait(userSetting, homePage);
-                        var readAdPage = new ReadAdPage(GlobalWebDriver);
+                        LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.LoginRetry);
+                        var readAdPage = new ReadAdPage(GlobalWebDriver, Config);
                         adDetails = readAdPage.ReadAds(Config.AdGlobalSetting);
                         if (!adDetails.Any())
                         {
                             Console.WriteLine($"Could not find any Ads from {Config.AdGlobalSetting.Position.From}" +
-                                $" to {Config.AdGlobalSetting.Position.To}");
-                            Console.WriteLine($"Wait ScanWhenFoundNothing {Config.AdGlobalSetting.Sleep.ScanWhenFoundNothing} minutes");
-                            Thread.Sleep(TimeSpan.FromMinutes(Config.AdGlobalSetting.Sleep.ScanWhenFoundNothing));
-                            GlobalWebDriver.Quit();
+                                 $" to {Config.AdGlobalSetting.Position.To}");
+                            var randomValue = GetRandomScanEvery(Config.AdGlobalSetting.Sleep.ScanEvery);
+                            Console.WriteLine($"Wait ScanEvery {randomValue} minutes");
+                            NonBlockedSleepInMinutes(randomValue);
+                            GlobalWebDriver.Close();
                             continue;
                         }
                         Console.WriteLine("******************************************************");
@@ -60,9 +61,9 @@ namespace AutoBot
                             Console.ReadLine();
                         }
                         Console.WriteLine($"Wait DelayAfterAllRead {Config.AdGlobalSetting.Sleep.DelayAfterAllRead} minutes");
-                        Thread.Sleep(TimeSpan.FromMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllRead));
+                        NonBlockedSleepInMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllRead);
 
-                        LoginAndWait(userSetting, homePage);
+                        LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.LoginRetry);
                         homePage.DeleteAds(adDetails);
                         Console.WriteLine("******************************************************");
                         Console.WriteLine("DeleteAd Done");
@@ -73,9 +74,9 @@ namespace AutoBot
                             Console.ReadLine();
                         }
                         Console.WriteLine($"Wait DelayAfterAllDeleted {Config.AdGlobalSetting.Sleep.DelayAfterAllDeleted} minutes");
-                        Thread.Sleep(TimeSpan.FromMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllDeleted));
+                        NonBlockedSleepInMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllDeleted);
 
-                        LoginAndWait(userSetting, homePage);
+                        LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.LoginRetry);
                         homePage.PostAds(adDetails);
                         Console.WriteLine("******************************************************");
                         Console.WriteLine("PostAd Done");
@@ -86,19 +87,20 @@ namespace AutoBot
                             Console.ReadLine();
                         }
                         Console.WriteLine($"Wait DelayAfterAllPost {Config.AdGlobalSetting.Sleep.DelayAfterAllPost} minutes");
-                        Thread.Sleep(TimeSpan.FromMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllPost));
-
+                        NonBlockedSleepInMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllPost);
                         var scanValue = GetRandomScanEvery(Config.AdGlobalSetting.Sleep.ScanEvery);
                         Console.WriteLine($"Wait ScanEvery {scanValue} minutes");
-                        Thread.Sleep(TimeSpan.FromMinutes(scanValue));
-                        GlobalWebDriver.Quit();
+                        NonBlockedSleepInMinutes(scanValue);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine($"Something went wrong | {e.Message} | {e.StackTrace}");
-                        SendErrorEmails(Config, adDetails, e);
-                        GlobalWebDriver.Quit();
-                        continue;
+                        SendErrorEmails(Config, adDetails, e, userSetting);
+                        Console.WriteLine($"Sent emails to {string.Join(", ", Config.ErrorEmail.Receivers)}");
+                    }
+                    finally
+                    {
+                        GlobalWebDriver.Close();
                     }
                 }
             }
@@ -109,7 +111,7 @@ namespace AutoBot
             var timeUtc = DateTime.UtcNow;
             TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
             DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
-            var scanSetting =  scanEverys.Where(s => s.DayOfWeek == easternTime.DayOfWeek).FirstOrDefault();
+            var scanSetting = scanEverys.Where(s => s.DayOfWeek == easternTime.DayOfWeek).FirstOrDefault();
             if (scanSetting is null)
             {
                 throw new Exception($"Could not found scan setting for {easternTime.DayOfWeek}");
@@ -117,9 +119,7 @@ namespace AutoBot
             return random.Next(scanSetting.RandomFrom, scanSetting.RandomTo);
         }
 
-        
-
-        private static void SendErrorEmails(AppSetting Config, List<AdDetails> adDetails, Exception e)
+        private static void SendErrorEmails(AppSetting Config, List<AdDetails> adDetails, Exception e, UserSetting userSetting)
         {
             var smtpClient = new SmtpClient("smtp.gmail.com")
             {
@@ -130,34 +130,50 @@ namespace AutoBot
             foreach (var Receiver in Config.ErrorEmail.Receivers)
             {
                 smtpClient.Send(Config.ErrorEmail.Sender, Receiver,
-                    "There was some thing wrong with Auto-Kijiji",
-                    $"ADS:{JsonConvert.SerializeObject(adDetails)}," +
-                    $" ERROR : {e.Message}," +
-                    $" STACK: {e.StackTrace}");
+                    $"There was some thing wrong with Auto-Kijiji - Account {userSetting.Email}",
+                    $"*******ADS:{JsonConvert.SerializeObject(adDetails)}," +
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    $"*******ERROR : {e.Message}," +
+                    Environment.NewLine +
+                    Environment.NewLine +
+                    $"*******STACK: {e.StackTrace}");
             }
         }
 
-        private static void LoginAndWait(UserSetting userSetting, HomePage homePage)
+        private static void LoginAndWait(UserSetting userSetting, HomePage homePage, int Retry)
         {
-            homePage.Login(userSetting.Email, userSetting.Pass);
-            Console.WriteLine("Wait a while in case there is capcha");
-            Thread.Sleep(15000);
+            for (int i = 0; i < Retry; i++)
+            {
+                try
+                {
+                    Console.WriteLine($"Logging in as {userSetting.Email} - {userSetting.Pass} - try {i}");
+                    homePage.Login(userSetting.Email, userSetting.Pass);
+                    Console.WriteLine("Wait a while. If there is a capcha, please resolve it manually.");
+                    Thread.Sleep(15000);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"There was an error during loging {e.Message} - proceed retry");
+                }
+            }
         }
 
-        private static IWebDriver SetupDriver(UserSetting userSetting)
+        private static IWebDriver SetupDriver(UserSetting userSetting, AppSetting config)
         {
             var chromeArguments = new List<string> {
                 "--disable-notifications",
                 "--start-maximized",
-                "--incognito",
+                //"--incognito",
                 "--ignore-ssl-errors",
                 "--ignore-certificate-errors",
-                "--disable-extensions",
+                //"--disable-extensions",
                 //"--headless",
                 "no-sandbox",
                 "--disable-logging",
                 "--disable-popup-blocking",
                 "disable-blink-features=AutomationControlled",
+                "--disable-dev-shm-usage",
                 "--log-level=3",
             };
 
@@ -173,11 +189,12 @@ namespace AutoBot
                 && userSetting.Proxy.UserName != null
                 && userSetting.Proxy.Password != null)
             {
+                Console.WriteLine($"Proxy activated: {userSetting.Proxy.Host}:{userSetting.Proxy.Port}:{userSetting.Proxy.UserName}:{userSetting.Proxy.Password}");
                 options.AddHttpProxy(userSetting.Proxy.Host, userSetting.Proxy.Port, userSetting.Proxy.UserName, userSetting.Proxy.Password);
             }
             options.AddExcludedArgument("enable-automation");
             options.AddAdditionalOption("useAutomationExtension", false);
-            return new ChromeDriver(options);
+            return new ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(config.AdGlobalSetting.Timeout));
         }
 
         private static void SetConsoleOutput(string prefix)
@@ -194,6 +211,16 @@ namespace AutoBot
                 AutoFlush = true
             };
             //Console.SetOut(outstreamwriter);
+        }
+
+        private static void NonBlockedSleepInMinutes(int sleep)
+        {
+            for (int i = 0; i < sleep; i++)
+            {
+                Console.WriteLine($"Wait 1 minutes then reload the page to stay signed in | {i + 1}/{sleep}");
+                Thread.Sleep(TimeSpan.FromMinutes(1));
+                GlobalWebDriver.Navigate().Refresh();
+            }
         }
     }
 }

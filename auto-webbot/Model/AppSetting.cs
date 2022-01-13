@@ -41,6 +41,8 @@ namespace auto_webbot.Model
         public SleepSetting Sleep { get; set; }
         public Position Position { get; set; }
         public bool PauseDuringRun { get; set; }
+        public int Timeout { get; set; }
+        public int LoginRetry { get; set; }
     }
 
     public enum Mode
@@ -59,6 +61,7 @@ namespace auto_webbot.Model
         public int DelayAfterAllDeleted { get; set; } 
         public RandomDelay DelayAfterEachPost { get; set; }
         public int DelayAfterAllPost { get; set; }
+        public int SleepBetweenEachAction { get; set; }
     }
 
     public class RandomDelay

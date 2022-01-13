@@ -17,23 +17,19 @@ namespace auto_webbot.Pages.Delete
             this.config = config;
         }
 
-        private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(20));
+        private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
         private By DeleteButtonLocator = By.XPath("//*[text()='Delete']");
         private By ReaonToDeleteLocator = By.XPath("//*[text()='Prefer not to say']");
         private By ProceedDeleteLocator = By.XPath("//*[text()='Delete My Ad']");
 
         public void DeleteAd(AdDetails adDetails)
         {
-            Thread.Sleep(1000);
-            var adUrlElements = WebWaiter
-                .Until(SeleniumExtras
-                    .WaitHelpers
-                    .ExpectedConditions
-                    .VisibilityOfAllElementsLocatedBy(By.PartialLinkText(adDetails.AdTitle)));
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var adUrlElements = webDriver.FindElements(By.XPath($"//*[text()='{adDetails.AdTitle}']"));
 
             if (adUrlElements.Any())
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 adUrlElements.First().Click();
                 var deleteButton = WebWaiter
                 .Until(SeleniumExtras
@@ -49,7 +45,7 @@ namespace auto_webbot.Pages.Delete
                     .ElementIsVisible(ReaonToDeleteLocator));
                 reason.Click();
 
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var ProceedDeletes = WebWaiter
                 .Until(SeleniumExtras
                     .WaitHelpers

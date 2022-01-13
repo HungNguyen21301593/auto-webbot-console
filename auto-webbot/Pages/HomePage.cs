@@ -22,7 +22,7 @@ namespace auto_webbot.Pages
             this.webDriver = webDriver;
             this.config = config;
         }
-        public WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(20));
+        public WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
         public By SigninLocator = By.LinkText("Sign In");
         public By PostAdButtonLocator = By.CssSelector("a[class*='headerButtonPostAd']");
         public By avatarLocator = By.CssSelector("a[class*='avatar']");
@@ -31,18 +31,22 @@ namespace auto_webbot.Pages
         public void Login(string email, string pass)
         {
             webDriver.Navigate().GoToUrl("https://www.kijiji.ca/?siteLocale=en_CA");
+
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var signinExist = webDriver.FindElements(SigninLocator);
-            if (signinExist.Any())
+            if (!signinExist.Any())
             {
-                var Signin = WebWaiter
-                .Until(SeleniumExtras
-                    .WaitHelpers
-                    .ExpectedConditions
-                    .ElementIsVisible(SigninLocator));
-                Signin.Click();
-                var signinPage = new SigninPage(webDriver);
-                signinPage.Login(email, pass);
+                Console.WriteLine("Logged in already so skip");
+                return;
             }
+            var Signin = WebWaiter
+            .Until(SeleniumExtras
+                .WaitHelpers
+                .ExpectedConditions
+                .ElementIsVisible(SigninLocator));
+            Signin.Click();
+            var signinPage = new SigninPage(webDriver);
+            signinPage.Login(email, pass);
         }
 
         public void PostAds(List<AdDetails> adDetails)
@@ -55,12 +59,14 @@ namespace auto_webbot.Pages
                 {
                     webDriver.Navigate().GoToUrl("https://www.kijiji.ca/?siteLocale=en_CA");
                     ClickPost();
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     SubmitAdTitle(adDetail);
-                    Thread.Sleep(1000);
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     InputAdDetails(adDetail);
-                    Thread.Sleep(TimeSpan.FromMinutes(random.Next(config.AdGlobalSetting.Sleep.DelayAfterEachPost.From, 
-                        config.AdGlobalSetting.Sleep.DelayAfterEachPost.To)));
+                    var randomTime = random.Next(config.AdGlobalSetting.Sleep.DelayAfterEachPost.From,
+                        config.AdGlobalSetting.Sleep.DelayAfterEachPost.To);
+                    Console.WriteLine($"Wait DelayAfterEachPost {randomTime} minutes");
+                    Thread.Sleep(TimeSpan.FromMinutes(randomTime));
                 }
                 catch (Exception e)
                 {
@@ -114,7 +120,7 @@ namespace auto_webbot.Pages
 
         private void SubmitAdTitle(AdDetails adDetails)
         {
-            var adTitlePage = new SelectCategoryPage(webDriver);
+            var adTitlePage = new SelectCategoryPage(webDriver, config);
             adTitlePage.SubmitAdTitle(adDetails);
         }
     }

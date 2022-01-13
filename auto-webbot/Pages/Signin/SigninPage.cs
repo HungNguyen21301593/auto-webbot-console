@@ -13,7 +13,7 @@ namespace auto_webbot.Pages
         {
             this.webDriver = webDriver;
         }
-        private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(60));
+        private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
         private By EmailLocaltor = By.Id("emailOrNickname");
         private By PassLocaltor = By.Id("password");
         private By SubmitLocaltor = By.CssSelector("button[class*='signInButton']");

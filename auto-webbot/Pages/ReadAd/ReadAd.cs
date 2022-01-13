@@ -15,10 +15,12 @@ namespace auto_webbot.Pages.Delete
     public class ReadAdPage
     {
         public IWebDriver webDriver { get; set; }
-        private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(60));
-        public ReadAdPage(IWebDriver webDriver)
+        private AppSetting config { get; set; }
+        private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
+        public ReadAdPage(IWebDriver webDriver, AppSetting config)
         {
             this.webDriver = webDriver;
+            this.config = config;
         }
 
         private By ImageTitleLocator = By.CssSelector("div[class*='imageTitleContainer']");
@@ -76,14 +78,14 @@ namespace auto_webbot.Pages.Delete
         private void LoadReadPage( out ReadOnlyCollection<IWebElement> ImageTitles)
         {
             webDriver.Navigate().GoToUrl("https://www.kijiji.ca/m-my-ads/active");
-            Thread.Sleep(2000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ImageTitles = webDriver.FindElements(ImageTitleLocator);
         }
 
         private AdDetails ReadSingleAd()
         {
             var adDetails = new AdDetails();
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadDynamicsTexts(adDetails);
             Console.WriteLine($"ReadDynamicsTexts {JsonConvert.SerializeObject(adDetails)}");
 
@@ -93,40 +95,40 @@ namespace auto_webbot.Pages.Delete
                 .ExpectedConditions
                 .ElementToBeClickable(EditAdLocator));
             editAd.Click();
-            Thread.Sleep(3000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadCategories(adDetails);
             Console.WriteLine($"ReadCategories {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadAdTitle(adDetails);
             Console.WriteLine($"ReadAdTitle {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadAdDescription(adDetails);
             Console.WriteLine($"ReadAdDescription {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadTags(adDetails);
             Console.WriteLine($"ReadTags {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadAddress(adDetails);
             Console.WriteLine($"ReadAddress {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadLocation(adDetails);
             Console.WriteLine($"ReadLocation {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             DownloadPics(adDetails);
             Console.WriteLine($"DownloadPics {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadPrice(adDetails);
             Console.WriteLine($"ReadPrice {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadCompany(adDetails);
             Console.WriteLine($"ReadCompany {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadTypes(adDetails);
             Console.WriteLine($"ReadTypes {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadCarYear(adDetails);
             Console.WriteLine($"ReadCarYear {JsonConvert.SerializeObject(adDetails)}");
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadCarKm(adDetails);
             Console.WriteLine($"ReadCarKm {JsonConvert.SerializeObject(adDetails)}");
             return adDetails;
@@ -168,7 +170,7 @@ namespace auto_webbot.Pages.Delete
 
         private void ReadCarKm(AdDetails adDetails)
         {
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var items = webDriver.FindElements(carKmLocator);
             if (items.Any())
             {
@@ -190,11 +192,11 @@ namespace auto_webbot.Pages.Delete
             var prices = webDriver.FindElements(priceLocators);
             if (prices.Any())
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var value = prices.First().GetAttribute("value");
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 decimal.TryParse(value, out var result);
-                Thread.Sleep(1000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 adDetails.Price = result;
             }
         }
@@ -250,7 +252,7 @@ namespace auto_webbot.Pages.Delete
 
         private void ReadTags(AdDetails adDetails)
         {
-            Thread.Sleep(1000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var tags = webDriver.FindElements(tagsLocators);
             if (tags.Any())
             {
@@ -284,7 +286,7 @@ namespace auto_webbot.Pages.Delete
 
         private void ReadCategories(AdDetails adDetails)
         {
-            Thread.Sleep(2000);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var categories = webDriver
                             .FindElements(categoriesLocators1);
             if (!categories.Any())

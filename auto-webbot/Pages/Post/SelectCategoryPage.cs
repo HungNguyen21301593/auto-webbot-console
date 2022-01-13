@@ -10,11 +10,13 @@ namespace auto_webbot.Pages.Post
     public class SelectCategoryPage
     {
         public IWebDriver webDriver { get; set; }
-        public SelectCategoryPage(IWebDriver webDriver)
+        public AppSetting config { get; set; }
+        public SelectCategoryPage(IWebDriver webDriver, AppSetting config)
         {
             this.webDriver = webDriver;
+            this.config = config;
         }
-        private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(60));
+        private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
         private By AdTitleLocaltor = By.Id("AdTitleForm");
         private By NextButtonLocaltor = By.XPath("/html/body/div[3]/div[2]/div/div/div/div[2]/div/div/div[2]/div[1]/div/button");
 
@@ -44,7 +46,7 @@ namespace auto_webbot.Pages.Post
         {
             foreach (var category in adDetails.Categories)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var categoryButtons = WebWaiter
                     .Until(SeleniumExtras
                         .WaitHelpers
