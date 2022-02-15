@@ -18,7 +18,7 @@ namespace auto_webbot.Pages.Post
         }
         private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
         private By AdTitleLocaltor = By.Id("AdTitleForm");
-        private By NextButtonLocaltor = By.XPath("/html/body/div[3]/div[2]/div/div/div/div[2]/div/div/div[2]/div[1]/div/button");
+        private By NextButtonLocaltor = By.XPath("//*[text()='Next']");
 
 
         public void SubmitAdTitle(AdDetails adDetails)
@@ -44,16 +44,55 @@ namespace auto_webbot.Pages.Post
 
         private void SelectCategories(AdDetails adDetails)
         {
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var normalCategoryContainer = webDriver.FindElements(By.CssSelector("div[class*='allCategoriesContainer']"));
+            if (!normalCategoryContainer.Any())
+            {
+                throw new Exception("Could not find normalCategoryContainer");
+            }
             foreach (var category in adDetails.Categories)
             {
                 Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-                var categoryButtons = WebWaiter
-                    .Until(SeleniumExtras
-                        .WaitHelpers
-                        .ExpectedConditions
-                        .VisibilityOfAllElementsLocatedBy(By.CssSelector("span[class*='categoryName']")));
+                var categoryButtons =
+                    normalCategoryContainer.First().FindElements(By.CssSelector("span[class*='categoryName']"));
+                if (!categoryButtons.Any())
+                {
+                    throw new Exception("Could not find categoryButtons");
+                }
                 categoryButtons.Where(b => b.Text == category).FirstOrDefault().Click();
             }
+            if (config.AdGlobalSetting.Locations != null)
+            {
+                foreach (var location in config.AdGlobalSetting.Locations)
+                {
+                    ClickLocation(location);
+                }
+                ClickGo();
+            } 
+        }
+
+        private void ClickLocation(string location)
+        {
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var element = webDriver.FindElements(By.XPath($"//*[text()='{location}']"));
+            if (!element.Any())
+            {
+                Console.WriteLine($"Warning, could not find AdGlobalSetting-location {location}");
+                return;
+            }
+            element.First().Click();
+        }
+
+        private void ClickGo()
+        {
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var element = webDriver.FindElements(By.Id("LocUpdate"));
+            if (!element.Any())
+            {
+                Console.WriteLine("Warning, could not found Go button");
+                return;
+            }
+            element.First().Click();
         }
     }
 }

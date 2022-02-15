@@ -8,8 +8,8 @@
   // Get more here: https://deviceatlas.com/blog/list-of-user-agent-strings
   "UserSettings": [
     {
-      "Email": "zerofear.5k@gmail.com",
-      "Pass": "Abcd4993!",
+      "Email": "hungnguyen21301593@gmail.com",
+      "Pass": "ObayaShi21301593!@",
       "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246",
       "Proxy": {
         "Host": null,
@@ -27,13 +27,20 @@
   "OutputFilePrefix": "output-",
   "Mode": 1, // test:0 (run but dont post, delete), run: 1 (real run)
   "AdGlobalSetting": {
+    "Locations": [ "Ontario (M - Z)", "Toronto (GTA)" ],
+    "SpecicalAdtitleSetting": [ "Epoxy","Flat" ],
     "Position": {
       "From": 1, // >= 1
       "To": 1 // <= 1
     },
     "PauseDuringRun": false,
-    "Timeout": 10,
-    "LoginRetry": 10,
+    "Timeout": 1,
+    "Retry": {
+      "LoginRetry": 10,
+      "ReadRetry": 10,
+      "DeteleRetry": 10,
+      "PostRetry": 10
+    },
     "Sleep": {
       "ScanEvery": [
         {
@@ -74,15 +81,16 @@
       ],
       "ScanWhenFoundNothing": 5,
       "DelayBetweenEachRead": 1,
-      "DelayAfterAllRead": 10,
+      "DelayAfterAllRead": 10, //10
       "DelayBetweenEachDelete": 1,
-      "DelayAfterAllDeleted": 10,
+      "DelayAfterAllDeleted": 10, //10
       "DelayAfterEachPost": {
         "From": 10,
         "To": 30
       },
-      "DelayAfterAllPost": 10,
-      "SleepBetweenEachAction": 5000
+      "DelayAfterAllPost": 1,
+      "SleepBetweenEachAction": 10000,
+      "SleepInterval": 1
     }
   }
 }

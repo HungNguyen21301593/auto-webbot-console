@@ -24,10 +24,12 @@ namespace auto_webbot.Pages.Post
                 this.config = config;
             }
             private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
+            private By AdTitleLocator = By.Id("postad-title");
             private By DescriptionLocaltor = By.Id("pstad-descrptn");
             private By FileInputWrapper = By.ClassName("imageUploadButtonWrapper");
             private By ChangeLocationButtonLocator = By.XPath("//*[text()='Change']");
             private By LocationLocator = By.Id("location");
+            private By LocationFirstLocator = By.Id("LocationSelector-item-0");
             private By addressLocator = By.Id("servicesLocationInput");
             private By addressLocatorFirst = By.Id("LocationSelector-item-0");
             private By PriceLocator = By.Id("PriceAmount");
@@ -36,9 +38,16 @@ namespace auto_webbot.Pages.Post
             private By carYearLocator = By.Id("caryear_i");
             private By carKmLocator = By.Id("carmileageinkms_i");
             private By selectBasicPackage = By.CssSelector("button[data-qa-id='package-0-bottom-select']");
+            
 
-            public void InputAdDetails(AdDetails adDetails)
+            public bool InputAdDetails(AdDetails adDetails)
             {
+                if (adDetails.AdTitle != null)
+                {
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                    InputAdTitle(adDetails);
+                    Console.WriteLine("InputAdTitle");
+                }
                 if (adDetails.Description != null)
                 {
                     Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
@@ -141,15 +150,37 @@ namespace auto_webbot.Pages.Post
                 if (config.Mode == Mode.test)
                 {
                     Console.WriteLine("App is in testing node, so no ad will be actual posted");
+                    return true;
                 }
                 else
                 {
                     Post();
+                    return CheckIfPostedSuccess();
                 }
+            }
+
+            private void InputAdTitle(AdDetails adDetails)
+            {
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                var element = webDriver.FindElements(AdTitleLocator);
+                if (!element.Any())
+                {
+                    Console.WriteLine("Could not dound AdTitleLocator");
+                }
+                element.First().Clear();
+                element.First().SendKeys(adDetails.AdTitle);
+            }
+
+            private bool CheckIfPostedSuccess()
+            {
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                var postedText = webDriver.FindElements(By.XPath("//*[text()='You have successfully posted your ad!']"));
+                return postedText.Any();
             }
 
             private void SelectBasicPakage()
             {
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var elements = webDriver.FindElements(selectBasicPackage);
                 if (elements.Any())
                 {
@@ -228,21 +259,25 @@ namespace auto_webbot.Pages.Post
             {
                 Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var elements = webDriver.FindElements(carKmLocator);
-                if (elements.Any())
+                if (!elements.Any())
                 {
-                    elements.First().SendKeys(adDetails.CarKm);
+                    Console.WriteLine("Could not found any InputCarKm so skip");
+                    return;
                 }
+                elements.First().SendKeys(adDetails.CarKm);
             }
 
             private void InputAddress(AdDetails adDetails)
             {
-                var addressElement = WebWaiter
-                                .Until(SeleniumExtras
-                                    .WaitHelpers
-                                    .ExpectedConditions
-                                    .ElementIsVisible(addressLocator));
-                addressElement.Clear();
-                addressElement.SendKeys(adDetails.Address);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                var addressElements = webDriver.FindElements(addressLocator);
+                if (!addressElements.Any())
+                {
+                    Console.WriteLine("Could not found any InputAddress so skip");
+                    return;
+                }
+                addressElements.First().Clear();
+                addressElements.First().SendKeys(adDetails.Address);
                 Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 var addressElementFirst = WebWaiter
                                .Until(SeleniumExtras
@@ -338,16 +373,15 @@ namespace auto_webbot.Pages.Post
                     MoreInfo.Click();
                 }
             }
-            
+
             private void Post()
             {
                 Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-                var post = WebWaiter
-                .Until(SeleniumExtras
-                    .WaitHelpers
-                    .ExpectedConditions
-                    .ElementIsVisible(PostButtonLocator));
-                post.Click();
+                var post = webDriver.FindElements(PostButtonLocator);
+                if (post.Any())
+                {
+                    post.First().Click();
+                }
             }
 
             private void InputPrice(AdDetails adDetails)
@@ -403,6 +437,12 @@ namespace auto_webbot.Pages.Post
                     .ExpectedConditions
                     .ElementIsVisible(LocationLocator));
                 location.SendKeys(locationText);
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                var locationFirst = webDriver.FindElements(LocationFirstLocator);
+                if (locationFirst.Any())
+                {
+                    locationFirst.First().Click();
+                }
             }
 
             private void CleanLocaltion()

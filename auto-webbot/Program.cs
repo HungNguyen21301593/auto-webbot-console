@@ -5,7 +5,6 @@ using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Chrome.ChromeDriverExtensions;
-using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,153 +12,285 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Threading;
+using WebDriverManager;
+using WebDriverManager.DriverConfigs.Impl;
 
 namespace AutoBot
 {
     class Program
     {
-        private static IWebDriver GlobalWebDriver;
-        private static WebDriverWait WebWaiter => new WebDriverWait(GlobalWebDriver, TimeSpan.FromSeconds(120));
-        private static Random random = new Random();
+        private static IWebDriver _globalWebDriver;
+        private static AppSetting _globalSetting;
+        private static readonly Random Random = new Random();
 
         static void Main(string[] args)
         {
             Console.WriteLine("Starting...");
-            var JsonText = File.ReadAllText("AppSetting.json");
-            var Config = JsonConvert.DeserializeObject<AppSetting>(JsonText);
-            SetConsoleOutput(Config.OutputFilePrefix);
-            List<AdDetails> adDetails = new List<AdDetails>();
+            var jsonText = File.ReadAllText("AppSetting.json");
+            var config = JsonConvert.DeserializeObject<AppSetting>(jsonText);
+            Console.WriteLine($"Config: {JsonConvert.SerializeObject(config)}");
+            _globalSetting = config;
+            SetConsoleOutput(config.OutputFilePrefix);
+            Console.CancelKeyPress += delegate
+            {
+                if (_globalWebDriver == null) return;
+                _globalWebDriver.Quit();
+                Environment.Exit(0);
+            };
+            var adDetails = new List<AdDetails>();
+            if (config.AdGlobalSetting.SpecicalAdtitleSetting is null)
+            {
+                throw new ApplicationException("SpecicalAdtitleSetting is not specified");
+            }
 
+            System.Diagnostics.Process myProcess = System.Diagnostics.Process.GetCurrentProcess();
+            myProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.High;
             while (true)
             {
-                foreach (var userSetting in Config.UserSettings)
+                foreach (var userSetting in config.UserSettings)
                 {
                     try
                     {
-                        GlobalWebDriver = SetupDriver(userSetting, Config);
-                        GlobalWebDriver.Manage().Timeouts().PageLoad = TimeSpan.FromMinutes(Config.AdGlobalSetting.Timeout);
-                        var homePage = new HomePage(GlobalWebDriver, Config);
-                        LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.LoginRetry);
-                        var readAdPage = new ReadAdPage(GlobalWebDriver, Config);
-                        adDetails = readAdPage.ReadAds(Config.AdGlobalSetting);
+                        SetupGlobalWebDriver(config, userSetting);
+                        var homePage = new HomePage(_globalWebDriver, config);
+                        LoginAndWait(userSetting, homePage, config.AdGlobalSetting.Retry.LoginRetry);
+                        adDetails = ReadAdAndRetryIfFailed(config, userSetting, homePage);
+
                         if (!adDetails.Any())
                         {
-                            Console.WriteLine($"Could not find any Ads from {Config.AdGlobalSetting.Position.From}" +
-                                 $" to {Config.AdGlobalSetting.Position.To}");
-                            var randomValue = GetRandomScanEvery(Config.AdGlobalSetting.Sleep.ScanEvery);
+                            Console.WriteLine($"Could not find any Ads from {config.AdGlobalSetting.Position.From}" +
+                                 $" to {config.AdGlobalSetting.Position.To}");
+                            var randomValue = GetRandomScanEvery(config.AdGlobalSetting.Sleep.ScanEvery);
                             Console.WriteLine($"Wait ScanEvery {randomValue} minutes");
                             NonBlockedSleepInMinutes(randomValue);
-                            GlobalWebDriver.Close();
+                            if (config.UserSettings.Count() > 1)
+                            {
+                            }
+                            //GlobalWebDriver.Close();
                             continue;
                         }
                         Console.WriteLine("******************************************************");
                         Console.WriteLine($"ReadAd Done, found {adDetails.Count()} Ads: {JsonConvert.SerializeObject(adDetails)}");
                         Console.WriteLine("******************************************************");
-                        if (Config.AdGlobalSetting.PauseDuringRun)
+                        if (config.AdGlobalSetting.PauseDuringRun)
                         {
                             Console.WriteLine("PauseDuringRun is activated, press enter to continue");
                             Console.ReadLine();
                         }
-                        Console.WriteLine($"Wait DelayAfterAllRead {Config.AdGlobalSetting.Sleep.DelayAfterAllRead} minutes");
-                        NonBlockedSleepInMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllRead);
+                        Console.WriteLine($"Wait DelayAfterAllRead {config.AdGlobalSetting.Sleep.DelayAfterAllRead} minutes");
+                        NonBlockedSleepInMinutes(config.AdGlobalSetting.Sleep.DelayAfterAllRead);
 
-                        LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.LoginRetry);
-                        homePage.DeleteAds(adDetails);
+                        DeleteAdAndRetryIfFailed(config, adDetails, homePage);
                         Console.WriteLine("******************************************************");
                         Console.WriteLine("DeleteAd Done");
                         Console.WriteLine("******************************************************");
-                        if (Config.AdGlobalSetting.PauseDuringRun)
+                        if (config.AdGlobalSetting.PauseDuringRun)
                         {
                             Console.WriteLine("PauseDuringRun is activated, press enter to continue");
                             Console.ReadLine();
                         }
-                        Console.WriteLine($"Wait DelayAfterAllDeleted {Config.AdGlobalSetting.Sleep.DelayAfterAllDeleted} minutes");
-                        NonBlockedSleepInMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllDeleted);
+                        Console.WriteLine($"Wait DelayAfterAllDeleted {config.AdGlobalSetting.Sleep.DelayAfterAllDeleted} minutes");
+                        NonBlockedSleepInMinutes(config.AdGlobalSetting.Sleep.DelayAfterAllDeleted);
 
-                        LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.LoginRetry);
-                        homePage.PostAds(adDetails);
+
+                        PostAdAndRetryIfFailed(config, adDetails, homePage);
                         Console.WriteLine("******************************************************");
                         Console.WriteLine("PostAd Done");
                         Console.WriteLine("******************************************************");
-                        if (Config.AdGlobalSetting.PauseDuringRun)
+                        if (config.AdGlobalSetting.PauseDuringRun)
                         {
                             Console.WriteLine("PauseDuringRun is activated, press enter to continue");
                             Console.ReadLine();
                         }
-                        Console.WriteLine($"Wait DelayAfterAllPost {Config.AdGlobalSetting.Sleep.DelayAfterAllPost} minutes");
-                        NonBlockedSleepInMinutes(Config.AdGlobalSetting.Sleep.DelayAfterAllPost);
-                        var scanValue = GetRandomScanEvery(Config.AdGlobalSetting.Sleep.ScanEvery);
+                        Console.WriteLine($"Wait DelayAfterAllPost {config.AdGlobalSetting.Sleep.DelayAfterAllPost} minutes");
+                        NonBlockedSleepInMinutes(config.AdGlobalSetting.Sleep.DelayAfterAllPost);
+                        var scanValue = GetRandomScanEvery(config.AdGlobalSetting.Sleep.ScanEvery);
                         Console.WriteLine($"Wait ScanEvery {scanValue} minutes");
                         NonBlockedSleepInMinutes(scanValue);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine($"Something went wrong | {e.Message} | {e.StackTrace}");
-                        SendErrorEmails(Config, adDetails, e, userSetting);
-                        Console.WriteLine($"Sent emails to {string.Join(", ", Config.ErrorEmail.Receivers)}");
+                        SendErrorEmails(config, adDetails, e, userSetting);
+                        Console.WriteLine($"Sent emails to {string.Join(", ", config.ErrorEmail.Receivers)}");
                     }
                     finally
                     {
-                        GlobalWebDriver.Close();
+                        if (config.UserSettings.Count() > 1)
+                        {
+                        }
+                        //GlobalWebDriver.Close();
                     }
                 }
             }
         }
 
-        private static int GetRandomScanEvery(List<ScanEvery> scanEverys)
+        private static List<AdDetails> ReadAdAndRetryIfFailed(AppSetting Config, UserSetting userSetting, HomePage homePage)
+        {
+            for (var i = 0; i < Config.AdGlobalSetting.Retry.ReadRetry; i++)
+            {
+                try
+                {
+                    LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.Retry.LoginRetry);
+                    var adDetails = new List<AdDetails>();
+                    Console.WriteLine($"ReadAds try {i}");
+                    var readAdPage = new ReadAdPage(_globalWebDriver, Config);
+                    return readAdPage.ReadAds(Config.AdGlobalSetting);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"There was an error during ReadAds {e.Message} - proceed retry");
+                }
+            }
+            return new List<AdDetails>();
+        }
+
+        private static void DeleteAdAndRetryIfFailed(AppSetting config, List<AdDetails> adDetails, HomePage homePage)
+        {
+            for (var i = 0; i < config.AdGlobalSetting.Retry.DeteleRetry; i++)
+            {
+                try
+                {
+                    //LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.Retry.LoginRetry);
+                    Console.WriteLine($"DeleteAds try {i}");
+                    homePage.DeleteAds(adDetails);
+                    Console.WriteLine("DeleteAds succeed, break retry loop");
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"There was an error during DeleteAds {e.Message} - proceed retry");
+                }
+            }
+        }
+
+        private static void PostAdAndRetryIfFailed(AppSetting config, List<AdDetails> adDetails, HomePage homePage)
+        {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+            for (var i = 0; i < config.AdGlobalSetting.Retry.PostRetry; i++)
+            {
+                try
+                {
+                    //LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.Retry.LoginRetry);
+                    Console.WriteLine($"PostAds try {i}");
+                    homePage.PostAds(adDetails);
+                    Console.WriteLine("PostAds succeed, so break retry loop");
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"There was an error during PostAds {e.Message} - proceed retry");
+                }
+            }
+        }
+
+        private static void SetupGlobalWebDriver(AppSetting config, UserSetting userSetting)
+        {
+            if (config.UserSettings.Count() == 1 && _globalWebDriver is null)
+            {
+                _globalWebDriver = SetupDriverInstance(config.UserSettings.First(), config);
+            }
+
+            if (config.UserSettings.Count() > 1)
+            {
+                _globalWebDriver = SetupDriverInstance(userSetting, config);
+            }
+        }
+
+        private static int GetRandomScanEvery(IReadOnlyCollection<ScanEvery> scanEverys)
         {
             var timeUtc = DateTime.UtcNow;
-            TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-            DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
-            var scanSetting = scanEverys.Where(s => s.DayOfWeek == easternTime.DayOfWeek).FirstOrDefault();
+            var easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            var easternTime = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
+
+            if (scanEverys == null) { throw new Exception($"Could not found scan setting for {easternTime.DayOfWeek}"); }
+
+            var scanSetting = scanEverys.FirstOrDefault(s => s.DayOfWeek == easternTime.DayOfWeek);
             if (scanSetting is null)
             {
                 throw new Exception($"Could not found scan setting for {easternTime.DayOfWeek}");
             }
-            return random.Next(scanSetting.RandomFrom, scanSetting.RandomTo);
+            return Random.Next(scanSetting.RandomFrom, scanSetting.RandomTo);
         }
 
-        private static void SendErrorEmails(AppSetting Config, List<AdDetails> adDetails, Exception e, UserSetting userSetting)
+        private static void SendErrorEmails(AppSetting config, List<AdDetails> adDetails, Exception e, UserSetting userSetting)
         {
-            var smtpClient = new SmtpClient("smtp.gmail.com")
+            try
             {
-                Port = 587,
-                Credentials = new NetworkCredential(Config.ErrorEmail.Sender, Config.ErrorEmail.PassForSender),
-                EnableSsl = true,
-            };
-            foreach (var Receiver in Config.ErrorEmail.Receivers)
-            {
-                smtpClient.Send(Config.ErrorEmail.Sender, Receiver,
-                    $"There was some thing wrong with Auto-Kijiji - Account {userSetting.Email}",
-                    $"*******ADS:{JsonConvert.SerializeObject(adDetails)}," +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    $"*******ERROR : {e.Message}," +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    $"*******STACK: {e.StackTrace}");
+                var smtpClient = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential(config.ErrorEmail.Sender, config.ErrorEmail.PassForSender),
+                    EnableSsl = true,
+                };
+                foreach (var receiver in config.ErrorEmail.Receivers)
+                {
+                    smtpClient.Send(config.ErrorEmail.Sender, receiver,
+                        $"There was some thing wrong with Auto-Kijiji - Account {userSetting.Email}",
+                        $"*******ADS:{JsonConvert.SerializeObject(adDetails)}," +
+                        Environment.NewLine +
+                        Environment.NewLine +
+                        $"*******ERROR : {e.Message}," +
+                        Environment.NewLine +
+                        Environment.NewLine +
+                        $"*******STACK: {e.StackTrace}");
+                }
             }
+            catch (Exception)
+            {
+                Console.WriteLine($"Warning | could not send error emails, this might happens b/c the Gmail server is down");
+            }
+
         }
 
-        private static void LoginAndWait(UserSetting userSetting, HomePage homePage, int Retry)
+        private static void LoginAndWait(UserSetting userSetting, HomePage homePage, int retry)
         {
-            for (int i = 0; i < Retry; i++)
+            for (var i = 0; i < retry; i++)
             {
                 try
                 {
                     Console.WriteLine($"Logging in as {userSetting.Email} - {userSetting.Pass} - try {i}");
-                    homePage.Login(userSetting.Email, userSetting.Pass);
-                    Console.WriteLine("Wait a while. If there is a capcha, please resolve it manually.");
+                    var signedInAlready = homePage.Login(userSetting.Email, userSetting.Pass);
+                    if (signedInAlready)
+                    {
+                        break;
+                    }
+                    Console.WriteLine("Wait a while. If there is a captcha, please resolve it manually.");
                     Thread.Sleep(15000);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"There was an error during loging {e.Message} - proceed retry");
+                    Console.WriteLine($"There was an error during login {e.Message} - proceed retry");
                 }
             }
         }
 
-        private static IWebDriver SetupDriver(UserSetting userSetting, AppSetting config)
+        private static IWebDriver SetupDriverInstance(UserSetting userSetting, AppSetting config)
+        {
+            new DriverManager().SetUpDriver(new ChromeConfig());
+            var service = ChromeDriverService.CreateDefaultService();
+
+            service.LogPath = "chromedriver.log";
+
+            service.EnableVerboseLogging = true;
+
+            var chromeArguments = GetGeneralSetting();
+
+            if (userSetting.UserAgent != null)
+            {
+                chromeArguments.Add($"--user-agent={userSetting.UserAgent}");
+            }
+            var options = new ChromeOptions();
+            options.AddExcludedArgument("enable-automation");
+            options.AddAdditionalOption("useAutomationExtension", false);
+            options.AddArguments(chromeArguments);
+            AddProxySeting(userSetting, options);
+            options.PageLoadStrategy = PageLoadStrategy.Eager;
+            return new ChromeDriver(service, options);
+        }
+
+
+        private static List<string> GetGeneralSetting()
         {
             var chromeArguments = new List<string> {
                 "--disable-notifications",
@@ -170,32 +301,33 @@ namespace AutoBot
                 //"--disable-extensions",
                 //"--headless",
                 "no-sandbox",
-                "--disable-logging",
+                "--disable-gpu",
+                //"--disable-logging",
                 "--disable-popup-blocking",
                 "disable-blink-features=AutomationControlled",
                 "--disable-dev-shm-usage",
-                "--log-level=3",
+                "--log-level=0",
+                "--disable-application-cache",
+                "enable-features=NetworkServiceInProcess",
+                "--disable-features=NetworkService"
             };
+            return chromeArguments;
+        }
 
-            if (userSetting.UserAgent != null)
-            {
-                chromeArguments.Add($"--user-agent={userSetting.UserAgent}");
-            }
-            var options = new ChromeOptions();
-            options.AddArguments(chromeArguments);
+        private static void AddProxySeting(UserSetting userSetting, ChromeOptions options)
+        {
             if (userSetting.Proxy != null
-                && userSetting.Proxy.Host != null
-                && userSetting.Proxy.Port != 0
-                && userSetting.Proxy.UserName != null
-                && userSetting.Proxy.Password != null)
+                            && userSetting.Proxy.Host != null
+                            && userSetting.Proxy.Port != 0
+                            && userSetting.Proxy.UserName != null
+                            && userSetting.Proxy.Password != null)
             {
                 Console.WriteLine($"Proxy activated: {userSetting.Proxy.Host}:{userSetting.Proxy.Port}:{userSetting.Proxy.UserName}:{userSetting.Proxy.Password}");
                 options.AddHttpProxy(userSetting.Proxy.Host, userSetting.Proxy.Port, userSetting.Proxy.UserName, userSetting.Proxy.Password);
             }
-            options.AddExcludedArgument("enable-automation");
-            options.AddAdditionalOption("useAutomationExtension", false);
-            return new ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(config.AdGlobalSetting.Timeout));
         }
+
+
 
         private static void SetConsoleOutput(string prefix)
         {
@@ -210,16 +342,24 @@ namespace AutoBot
             {
                 AutoFlush = true
             };
-            //Console.SetOut(outstreamwriter);
         }
 
         private static void NonBlockedSleepInMinutes(int sleep)
         {
-            for (int i = 0; i < sleep; i++)
+            var minutesToSleep = _globalSetting.AdGlobalSetting.Sleep.SleepInterval;
+            var numberOfSleeps = sleep / minutesToSleep;
+            for (var i = 0; i < numberOfSleeps; i++)
             {
-                Console.WriteLine($"Wait 1 minutes then reload the page to stay signed in | {i + 1}/{sleep}");
-                Thread.Sleep(TimeSpan.FromMinutes(1));
-                GlobalWebDriver.Navigate().Refresh();
+                Console.WriteLine($"Wait {minutesToSleep} minutes then reload the page to stay signed in | {i + 1}/{numberOfSleeps}");
+                Thread.Sleep(TimeSpan.FromMinutes(minutesToSleep));
+                //try
+                //{
+                //    GlobalWebDriver.Navigate().GoToUrl("https://www.kijiji.ca/?siteLocale=en_CA");
+                //}
+                //catch (Exception e)
+                //{
+                //    Console.WriteLine($"Warning, webdriver has been disconnected...|{e.Message}");
+                //}
             }
         }
     }

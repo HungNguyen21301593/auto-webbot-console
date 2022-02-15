@@ -1,6 +1,5 @@
 ﻿using auto_webbot.Model;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Support.UI;
 using System;
 using System.Linq;
 using System.Threading;
@@ -9,64 +8,66 @@ namespace auto_webbot.Pages.Delete
 {
     public class DeletePage
     {
-        public IWebDriver webDriver { get; set; }
-        private AppSetting config { get; set; }
+        public IWebDriver WebDriver { get; set; }
+        private AppSetting Config { get; set; }
         public DeletePage(IWebDriver webDriver, AppSetting config)
         {
-            this.webDriver = webDriver;
-            this.config = config;
+            this.WebDriver = webDriver;
+            this.Config = config;
         }
 
-        private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
-        private By DeleteButtonLocator = By.XPath("//*[text()='Delete']");
-        private By ReaonToDeleteLocator = By.XPath("//*[text()='Prefer not to say']");
-        private By ProceedDeleteLocator = By.XPath("//*[text()='Delete My Ad']");
+        private readonly By DeleteButtonLocator = By.XPath("//*[text()='Delete']");
+        private readonly By ReasonToDeleteLocator = By.XPath("//*[text()='Prefer not to say']");
+        private readonly By ProceedDeleteLocator = By.XPath("//*[text()='Delete My Ad']");
 
         public void DeleteAd(AdDetails adDetails)
         {
-            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-            var adUrlElements = webDriver.FindElements(By.XPath($"//*[text()='{adDetails.AdTitle}']"));
+            Thread.Sleep(Config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var proceededAdtitle = ProcessAdtitleSpecialCharacters(adDetails.AdTitle);
+            var adUrlElements = WebDriver.FindElements(By.XPath($"//*[text()='{proceededAdtitle}']"));
 
-            if (adUrlElements.Any())
+            if (!adUrlElements.Any()) return;
+            Thread.Sleep(Config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            adUrlElements.First().Click();
+
+            Thread.Sleep(Config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var deleteButton = WebDriver.FindElements(DeleteButtonLocator);
+            if (deleteButton.Any())
             {
-                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-                adUrlElements.First().Click();
-                var deleteButton = WebWaiter
-                .Until(SeleniumExtras
-                    .WaitHelpers
-                    .ExpectedConditions
-                    .ElementIsVisible(DeleteButtonLocator));
-                deleteButton.Click();
-
-                var reason = WebWaiter
-                .Until(SeleniumExtras
-                    .WaitHelpers
-                    .ExpectedConditions
-                    .ElementIsVisible(ReaonToDeleteLocator));
-                reason.Click();
-
-                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-                var ProceedDeletes = WebWaiter
-                .Until(SeleniumExtras
-                    .WaitHelpers
-                    .ExpectedConditions
-                    .VisibilityOfAllElementsLocatedBy(ProceedDeleteLocator));
-                var proceedDelete = ProceedDeletes
-                    .Where(l => l.TagName == "button")
-                    .FirstOrDefault();
-                if (proceedDelete is null)
-                {
-                    throw new Exception("could not find the delete button");
-                }
-                if (config.Mode == Mode.test)
-                {
-                    Console.WriteLine("App is in testing mode, so no Ad will be deleted");
-                }
-                else
-                {
-                    proceedDelete.Click();
-                }
+                deleteButton.First().Click();
             }
+
+            Thread.Sleep(Config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var reason = WebDriver.FindElements(ReasonToDeleteLocator);
+            if (reason.Any())
+            {
+                reason.First().Click();
+            }
+
+            Thread.Sleep(Config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var proceedDeletes = WebDriver.FindElements(ProceedDeleteLocator);
+            if (!proceedDeletes.Any()) return;
+            var proceedDelete = proceedDeletes
+                .FirstOrDefault(l => l.TagName == "button");
+            if (proceedDelete is null)
+            {
+                throw new Exception("could not find the delete button");
+            }
+
+            if (Config.Mode == Mode.test)
+            {
+                Console.WriteLine("App is in testing mode, so no Ad will be deleted");
+            }
+            else
+            {
+                proceedDelete.Click();
+            }
+        }
+
+        private string ProcessAdtitleSpecialCharacters(string adtitle)
+        {
+            string outputStr = adtitle.Split('\'')[0];
+            return outputStr;
         }
     }
 }

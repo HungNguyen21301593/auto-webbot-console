@@ -22,31 +22,26 @@ namespace auto_webbot.Pages
             this.webDriver = webDriver;
             this.config = config;
         }
-        public WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
         public By SigninLocator = By.LinkText("Sign In");
         public By PostAdButtonLocator = By.CssSelector("a[class*='headerButtonPostAd']");
         public By avatarLocator = By.CssSelector("a[class*='avatar']");
 
 
-        public void Login(string email, string pass)
+        public bool Login(string email, string pass)
         {
             webDriver.Navigate().GoToUrl("https://www.kijiji.ca/?siteLocale=en_CA");
 
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var signinExist = webDriver.FindElements(SigninLocator);
-            if (!signinExist.Any())
+            if (signinExist.Any())
             {
-                Console.WriteLine("Logged in already so skip");
-                return;
+                signinExist.First().Click();
+                var signinPage = new SigninPage(webDriver);
+                signinPage.Login(email, pass);
+                return false;
             }
-            var Signin = WebWaiter
-            .Until(SeleniumExtras
-                .WaitHelpers
-                .ExpectedConditions
-                .ElementIsVisible(SigninLocator));
-            Signin.Click();
-            var signinPage = new SigninPage(webDriver);
-            signinPage.Login(email, pass);
+            Console.WriteLine("Logged in already so skip");
+            return true;
         }
 
         public void PostAds(List<AdDetails> adDetails)
@@ -104,18 +99,22 @@ namespace auto_webbot.Pages
 
         private void ClickPost()
         {
-            var postAd = WebWaiter
-                            .Until(SeleniumExtras
-                                .WaitHelpers
-                                .ExpectedConditions
-                                .ElementToBeClickable(PostAdButtonLocator));
-            postAd.Click();
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var postAd = webDriver.FindElements(PostAdButtonLocator);
+            if (postAd.Any())
+            {
+                postAd.First().Click();
+            }
         }
 
         private void InputAdDetails(AdDetails adDetails)
         {
             var adDetailInputPage = new AdDetailInputPage(webDriver,config);
-            adDetailInputPage.InputAdDetails(adDetails);
+                var success = adDetailInputPage.InputAdDetails(adDetails);
+                if (!success)
+                {
+                    throw new Exception($"Posted ad failed");
+                }
         }
 
         private void SubmitAdTitle(AdDetails adDetails)

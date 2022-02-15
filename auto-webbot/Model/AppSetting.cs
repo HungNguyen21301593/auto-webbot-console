@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace auto_webbot.Model
 {
@@ -29,20 +28,23 @@ namespace auto_webbot.Model
         public string Password { get; set; }
     }
 
-    public enum BrowserSetting
-    { 
-        chrome,
-        firefox,
-        internetexplorer
-    }
-
     public class AdGlobalSetting
     {
+        public List<string> SpecicalAdtitleSetting { get; set; }
         public SleepSetting Sleep { get; set; }
         public Position Position { get; set; }
         public bool PauseDuringRun { get; set; }
         public int Timeout { get; set; }
+        public Retry Retry { get; set; }
+        public string[] Locations { get; set; }
+    }
+
+    public class Retry
+    {
         public int LoginRetry { get; set; }
+        public int ReadRetry { get; set; }
+        public int DeteleRetry { get; set; }
+        public int PostRetry { get; set; }
     }
 
     public enum Mode
@@ -62,6 +64,7 @@ namespace auto_webbot.Model
         public RandomDelay DelayAfterEachPost { get; set; }
         public int DelayAfterAllPost { get; set; }
         public int SleepBetweenEachAction { get; set; }
+        public int SleepInterval { get; set; }
     }
 
     public class RandomDelay
