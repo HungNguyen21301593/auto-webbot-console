@@ -81,7 +81,6 @@ namespace auto_webbot.Pages.Delete
             webDriver.Navigate().GoToUrl("https://www.kijiji.ca/m-my-ads/active");
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var elements = webDriver.FindElements(ImageTitleLocator).ToList();
-            elements.Reverse();
             ImageTitles = elements;
         }
 
