@@ -38,7 +38,8 @@ namespace auto_webbot.Pages.Post
             private By carYearLocator = By.Id("caryear_i");
             private By carKmLocator = By.Id("carmileageinkms_i");
             private By selectBasicPackage = By.CssSelector("button[data-qa-id='package-0-bottom-select']");
-            
+            private By termAndConditions = By.CssSelector("span[class='checkbox-label']");
+
 
             public bool InputAdDetails(AdDetails adDetails)
             {
@@ -146,6 +147,12 @@ namespace auto_webbot.Pages.Post
 
                 Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 SelectBasicPakage();
+                Console.WriteLine("SelectBasicPakage");
+
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                ActiveTermAndCondition();
+                Console.WriteLine("ActiveTermAndCondition");
+
                 Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                 if (config.Mode == Mode.test)
                 {
@@ -156,6 +163,16 @@ namespace auto_webbot.Pages.Post
                 {
                     Post();
                     return CheckIfPostedSuccess();
+                }
+            }
+
+            private void ActiveTermAndCondition()
+            {
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                var elements = webDriver.FindElements(termAndConditions);
+                if (elements.Any())
+                {
+                    elements.First().Click();
                 }
             }
 

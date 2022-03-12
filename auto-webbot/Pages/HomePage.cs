@@ -36,7 +36,7 @@ namespace auto_webbot.Pages
             if (signinExist.Any())
             {
                 signinExist.First().Click();
-                var signinPage = new SigninPage(webDriver);
+                var signinPage = new SigninPage(webDriver, config);
                 signinPage.Login(email, pass);
                 return false;
             }

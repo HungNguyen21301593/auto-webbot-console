@@ -3,14 +3,18 @@ using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using auto_webbot.Model;
 
 namespace auto_webbot.Pages
 {
     public class SigninPage
     {
+        private readonly AppSetting Config;
         public IWebDriver webDriver { get; set; }
-        public SigninPage(IWebDriver webDriver)
+        public SigninPage(IWebDriver webDriver, Model.AppSetting config)
         {
+            Config = config;
             this.webDriver = webDriver;
         }
         private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
@@ -21,6 +25,7 @@ namespace auto_webbot.Pages
 
         public void Login(string email, string pass)
         {
+            Thread.Sleep(Config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var emailElement = WebWaiter
                 .Until(SeleniumExtras
                     .WaitHelpers
@@ -28,6 +33,7 @@ namespace auto_webbot.Pages
                     .ElementIsVisible(EmailLocaltor));
             emailElement.SendKeys(email);
 
+            Thread.Sleep(Config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var passElement = WebWaiter
                 .Until(SeleniumExtras
                     .WaitHelpers
@@ -35,11 +41,12 @@ namespace auto_webbot.Pages
                     .ElementIsVisible(PassLocaltor));
             passElement.SendKeys(pass);
 
+            Thread.Sleep(Config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var submitElement = WebWaiter
                 .Until(SeleniumExtras
                     .WaitHelpers
                     .ExpectedConditions
-                    .ElementIsVisible(SubmitLocaltor));
+                    .ElementToBeClickable(SubmitLocaltor));
             submitElement.Click();
         }
     }

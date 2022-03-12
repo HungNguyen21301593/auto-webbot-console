@@ -63,10 +63,6 @@ namespace AutoBot
                             var randomValue = GetRandomScanEvery(config.AdGlobalSetting.Sleep.ScanEvery);
                             Console.WriteLine($"Wait ScanEvery {randomValue} minutes");
                             NonBlockedSleepInMinutes(randomValue);
-                            if (config.UserSettings.Count() > 1)
-                            {
-                            }
-                            //GlobalWebDriver.Close();
                             continue;
                         }
                         Console.WriteLine("******************************************************");
@@ -114,13 +110,6 @@ namespace AutoBot
                         SendErrorEmails(config, adDetails, e, userSetting);
                         Console.WriteLine($"Sent emails to {string.Join(", ", config.ErrorEmail.Receivers)}");
                     }
-                    finally
-                    {
-                        if (config.UserSettings.Count() > 1)
-                        {
-                        }
-                        //GlobalWebDriver.Close();
-                    }
                 }
             }
         }
@@ -131,7 +120,6 @@ namespace AutoBot
             {
                 try
                 {
-                    LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.Retry.LoginRetry);
                     var adDetails = new List<AdDetails>();
                     Console.WriteLine($"ReadAds try {i}");
                     var readAdPage = new ReadAdPage(_globalWebDriver, Config);
@@ -151,7 +139,6 @@ namespace AutoBot
             {
                 try
                 {
-                    //LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.Retry.LoginRetry);
                     Console.WriteLine($"DeleteAds try {i}");
                     homePage.DeleteAds(adDetails);
                     Console.WriteLine("DeleteAds succeed, break retry loop");
@@ -171,7 +158,6 @@ namespace AutoBot
             {
                 try
                 {
-                    //LoginAndWait(userSetting, homePage, Config.AdGlobalSetting.Retry.LoginRetry);
                     Console.WriteLine($"PostAds try {i}");
                     homePage.PostAds(adDetails);
                     Console.WriteLine("PostAds succeed, so break retry loop");
@@ -302,11 +288,11 @@ namespace AutoBot
                 //"--headless",
                 "no-sandbox",
                 "--disable-gpu",
-                //"--disable-logging",
+                "--disable-logging",
                 "--disable-popup-blocking",
                 "disable-blink-features=AutomationControlled",
                 "--disable-dev-shm-usage",
-                "--log-level=0",
+                "--log-level=3",
                 "--disable-application-cache",
                 "enable-features=NetworkServiceInProcess",
                 "--disable-features=NetworkService"
@@ -352,14 +338,6 @@ namespace AutoBot
             {
                 Console.WriteLine($"Wait {minutesToSleep} minutes then reload the page to stay signed in | {i + 1}/{numberOfSleeps}");
                 Thread.Sleep(TimeSpan.FromMinutes(minutesToSleep));
-                //try
-                //{
-                //    GlobalWebDriver.Navigate().GoToUrl("https://www.kijiji.ca/?siteLocale=en_CA");
-                //}
-                //catch (Exception e)
-                //{
-                //    Console.WriteLine($"Warning, webdriver has been disconnected...|{e.Message}");
-                //}
             }
         }
     }

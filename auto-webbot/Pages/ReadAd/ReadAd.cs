@@ -54,7 +54,7 @@ namespace auto_webbot.Pages.Delete
             var listAdDeatails = new List<AdDetails>();
             try
             {
-                ReadOnlyCollection<IWebElement> ImageTitles;
+                List<IWebElement> ImageTitles;
                 LoadReadPage(out ImageTitles);
                 for (int i = 0; i < ImageTitles.Count(); i++)
                 {
@@ -76,11 +76,13 @@ namespace auto_webbot.Pages.Delete
             }
         }
 
-        private void LoadReadPage( out ReadOnlyCollection<IWebElement> ImageTitles)
+        private void LoadReadPage( out List<IWebElement> ImageTitles)
         {
             webDriver.Navigate().GoToUrl("https://www.kijiji.ca/m-my-ads/active");
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-            ImageTitles = webDriver.FindElements(ImageTitleLocator);
+            var elements = webDriver.FindElements(ImageTitleLocator).ToList();
+            elements.Reverse();
+            ImageTitles = elements;
         }
 
         private AdDetails ReadSingleAd()
