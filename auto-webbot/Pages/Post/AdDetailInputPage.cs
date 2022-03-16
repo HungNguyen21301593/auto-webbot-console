@@ -39,6 +39,7 @@ namespace auto_webbot.Pages.Post
             private By carKmLocator = By.Id("carmileageinkms_i");
             private By selectBasicPackage = By.CssSelector("button[data-qa-id='package-0-bottom-select']");
             private By termAndConditions = By.CssSelector("span[class='checkbox-label']");
+            private By PricePleaseContactLocator = By.XPath("//*[text()='Please Contact']");
 
 
             public bool InputAdDetails(AdDetails adDetails)
@@ -109,12 +110,21 @@ namespace auto_webbot.Pages.Post
                     InputAddress(adDetails);
                     Console.WriteLine("InputAddress");
                 }
+
                 if (adDetails.Price != 0)
                 {
                     Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
                     InputPrice(adDetails);
                     Console.WriteLine("InputPrice");
                 }
+
+                if (adDetails.Price == 0)
+                {
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                    InputPricePleaseContact();
+                    Console.WriteLine("InputPrice");
+                }
+
                 if (adDetails.Company != null)
                 {
                     Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
@@ -165,6 +175,19 @@ namespace auto_webbot.Pages.Post
                     return CheckIfPostedSuccess();
                 }
             }
+
+            private void InputPricePleaseContact()
+            {
+                Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                var elements = webDriver.FindElements(PricePleaseContactLocator);
+                if (!elements.Any())
+                {
+                    Console.WriteLine("InputPricePleaseContact did not find any elements");
+                    return;
+                }
+                elements.First().Click();
+            }
+
 
             private void ActiveTermAndCondition()
             {

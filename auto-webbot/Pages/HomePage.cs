@@ -61,7 +61,7 @@ namespace auto_webbot.Pages
                     var randomTime = random.Next(config.AdGlobalSetting.Sleep.DelayAfterEachPost.From,
                         config.AdGlobalSetting.Sleep.DelayAfterEachPost.To);
                     Console.WriteLine($"Wait DelayAfterEachPost {randomTime} minutes");
-                    Thread.Sleep(TimeSpan.FromMinutes(randomTime));
+                    NonBlockedSleepInMinutes(randomTime);
                 }
                 catch (Exception e)
                 {
@@ -84,7 +84,8 @@ namespace auto_webbot.Pages
                     webDriver.Navigate().GoToUrl("https://www.kijiji.ca/m-my-ads/active");
                     var deletePage = new DeletePage(webDriver, config);
                     deletePage.DeleteAd(adDetail);
-                    Thread.Sleep(config.AdGlobalSetting.Sleep.DelayBetweenEachDelete);
+                    Console.WriteLine($"Wait DelayAfterEachPost {config.AdGlobalSetting.Sleep.DelayBetweenEachDelete} minutes");
+                    NonBlockedSleepInMinutes(config.AdGlobalSetting.Sleep.DelayBetweenEachDelete);
                 }
                 catch (Exception e)
                 {
@@ -121,6 +122,17 @@ namespace auto_webbot.Pages
         {
             var adTitlePage = new SelectCategoryPage(webDriver, config);
             adTitlePage.SubmitAdTitle(adDetails);
+        }
+
+        private void NonBlockedSleepInMinutes(int sleep)
+        {
+            var minutesToSleep = config.AdGlobalSetting.Sleep.SleepInterval;
+            var numberOfSleeps = sleep / minutesToSleep;
+            for (var i = 0; i < numberOfSleeps; i++)
+            {
+                Console.WriteLine($"Wait {minutesToSleep} minutes then reload the page to stay signed in | {i + 1}/{numberOfSleeps}");
+                Thread.Sleep(TimeSpan.FromMinutes(minutesToSleep));
+            }
         }
     }
 }
