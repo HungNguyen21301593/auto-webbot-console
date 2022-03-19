@@ -76,7 +76,7 @@ namespace AutoBot
                         Console.WriteLine($"Wait DelayAfterAllRead {config.AdGlobalSetting.Sleep.DelayAfterAllRead} minutes");
                         NonBlockedSleepInMinutes(config.AdGlobalSetting.Sleep.DelayAfterAllRead);
 
-                        DeleteAdAndRetryIfFailed(config, adDetails, homePage);
+                        DeleteAdAndRetryIfFailed(adDetails, homePage);
                         Console.WriteLine("******************************************************");
                         Console.WriteLine("DeleteAd Done");
                         Console.WriteLine("******************************************************");
@@ -89,7 +89,7 @@ namespace AutoBot
                         NonBlockedSleepInMinutes(config.AdGlobalSetting.Sleep.DelayAfterAllDeleted);
 
 
-                        PostAdAndRetryIfFailed(config, adDetails, homePage);
+                        PostAdAndRetryIfFailed(adDetails, homePage);
                         Console.WriteLine("******************************************************");
                         Console.WriteLine("PostAd Done");
                         Console.WriteLine("******************************************************");
@@ -133,41 +133,14 @@ namespace AutoBot
             return new List<AdDetails>();
         }
 
-        private static void DeleteAdAndRetryIfFailed(AppSetting config, List<AdDetails> adDetails, HomePage homePage)
+        private static void DeleteAdAndRetryIfFailed( List<AdDetails> adDetails, HomePage homePage)
         {
-            for (var i = 0; i < config.AdGlobalSetting.Retry.DeteleRetry; i++)
-            {
-                try
-                {
-                    Console.WriteLine($"DeleteAds try {i}");
-                    homePage.DeleteAds(adDetails);
-                    Console.WriteLine("DeleteAds succeed, break retry loop");
-                    break;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"There was an error during DeleteAds {e.Message} - proceed retry");
-                }
-            }
+            homePage.DeleteAds(adDetails);
         }
 
-        private static void PostAdAndRetryIfFailed(AppSetting config, List<AdDetails> adDetails, HomePage homePage)
+        private static void PostAdAndRetryIfFailed(List<AdDetails> adDetails, HomePage homePage)
         {
-            if (config == null) throw new ArgumentNullException(nameof(config));
-            for (var i = 0; i < config.AdGlobalSetting.Retry.PostRetry; i++)
-            {
-                try
-                {
-                    Console.WriteLine($"PostAds try {i}");
-                    homePage.PostAds(adDetails);
-                    Console.WriteLine("PostAds succeed, so break retry loop");
-                    break;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"There was an error during PostAds {e.Message} - proceed retry");
-                }
-            }
+            homePage.PostAds(adDetails);
         }
 
         private static void SetupGlobalWebDriver(AppSetting config, UserSetting userSetting)

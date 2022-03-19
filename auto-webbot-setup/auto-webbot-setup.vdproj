@@ -81,6 +81,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
     }
@@ -170,7 +178,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:auto-webbot"
         "ProductCode" = "8:{E2DA919B-6540-45E2-8AB0-05D52C18DB3C}"
-        "PackageCode" = "8:{C0AF436C-7743-4914-8B0B-B5354F7A3136}"
+        "PackageCode" = "8:{896577FC-6282-4AA5-8D59-652057F04C8A}"
         "UpgradeCode" = "8:{8BD886E2-8D20-4677-8537-95733ED5862A}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -691,7 +699,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_AC2FCF5310334E588DC9F00165856E4E"
             {
-            "SourcePath" = "8:..\\auto-webbot\\obj\\Debug\\netcoreapp3.1\\apphost.exe"
+            "SourcePath" = "8:..\\auto-webbot\\obj\\Release\\netcoreapp3.1\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_39C16881614940BC9A6CF8CCF5F61745"

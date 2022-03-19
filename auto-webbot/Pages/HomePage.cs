@@ -24,7 +24,6 @@ namespace auto_webbot.Pages
         }
         public By SigninLocator = By.LinkText("Sign In");
         public By PostAdButtonLocator = By.CssSelector("a[class*='headerButtonPostAd']");
-        public By avatarLocator = By.CssSelector("a[class*='avatar']");
 
 
         public bool Login(string email, string pass)
@@ -46,32 +45,39 @@ namespace auto_webbot.Pages
 
         public void PostAds(List<AdDetails> adDetails)
         {
-            Random random = new Random();
-            var exceptionMessages = new List<string>();
             foreach (var adDetail in adDetails)
             {
-                try
+                if (config == null) throw new ArgumentNullException(nameof(config));
+                for (var i = 0; i < config.AdGlobalSetting.Retry.PostRetry; i++)
                 {
-                    webDriver.Navigate().GoToUrl("https://www.kijiji.ca/?siteLocale=en_CA");
-                    ClickPost();
-                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-                    SubmitAdTitle(adDetail);
-                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-                    InputAdDetails(adDetail);
-                    var randomTime = random.Next(config.AdGlobalSetting.Sleep.DelayAfterEachPost.From,
-                        config.AdGlobalSetting.Sleep.DelayAfterEachPost.To);
-                    Console.WriteLine($"Wait DelayAfterEachPost {randomTime} minutes");
-                    NonBlockedSleepInMinutes(randomTime);
-                }
-                catch (Exception e)
-                {
-                    exceptionMessages.Add($"Error postting Ad, error {e.Message}, object: {JsonConvert.SerializeObject(adDetail)}");
+                    try
+                    {
+                        Console.WriteLine($"PostAds try {i}");
+                        PostSingleAd(adDetail);
+                        Console.WriteLine("PostAds succeed, so break retry loop");
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"There was an error during PostAds {e.Message}, {e.StackTrace} - proceed retry");
+                    }
                 }
             }
-            if (exceptionMessages.Any())
-            {
-                throw new Exception(JsonConvert.SerializeObject(exceptionMessages));
-            }
+        }
+
+        private void PostSingleAd(AdDetails adDetail)
+        {
+            var random = new Random();
+            webDriver.Navigate().GoToUrl("https://www.kijiji.ca/?siteLocale=en_CA");
+            ClickPost();
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            SubmitAdTitle(adDetail);
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            InputAdDetails(adDetail);
+            var randomTime = random.Next(config.AdGlobalSetting.Sleep.DelayAfterEachPost.From,
+                config.AdGlobalSetting.Sleep.DelayAfterEachPost.To);
+            Console.WriteLine($"Wait DelayAfterEachPost {randomTime} minutes");
+            NonBlockedSleepInMinutes(randomTime);
         }
 
         public void DeleteAds(List<AdDetails> adDetails)

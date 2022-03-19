@@ -22,6 +22,25 @@ namespace auto_webbot.Pages.Delete
 
         public void DeleteAd(AdDetails adDetails)
         {
+            for (var i = 0; i < Config.AdGlobalSetting.Retry.DeteleRetry; i++)
+            {
+                try
+                {
+                    Console.WriteLine($"DeleteAds try {i}");
+                    proceedDeleteSingleAd(adDetails);
+                    Console.WriteLine("DeleteAds succeed, break retry loop");
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"There was an error during DeleteAds {e.Message} - proceed retry");
+                }
+            }
+            
+        }
+
+        private void proceedDeleteSingleAd(AdDetails adDetails)
+        {
             Thread.Sleep(Config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var proceededAdtitle = ProcessAdtitleSpecialCharacters(adDetails.AdTitle);
             var adUrlElements = WebDriver.FindElements(By.XPath($"//*[text()='{proceededAdtitle}']"));
