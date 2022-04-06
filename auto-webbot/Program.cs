@@ -226,7 +226,7 @@ namespace AutoBot
 
         private static IWebDriver SetupDriverInstance(UserSetting userSetting, AppSetting config)
         {
-            new DriverManager().SetUpDriver(new ChromeConfig());
+            new DriverManager().SetUpDriver(new ChromeConfig(), "MatchingBrowser");
             var service = ChromeDriverService.CreateDefaultService();
 
             service.LogPath = "chromedriver.log";
