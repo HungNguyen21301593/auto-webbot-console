@@ -8,8 +8,8 @@
   // Get more here: https://deviceatlas.com/blog/list-of-user-agent-strings
   "UserSettings": [
     {
-      "Email": "2040venturesgroup@gmail.com", // "hungnguyen21301593@gmail.com",
-      "Pass": "Kijiji$543649$",// "ObayaShi21301593!@",
+      "Email": "hungnguyen21301593@gmail.com", // "hungnguyen21301593@gmail.com",
+      "Pass": "ObayaShi21301593!@", // "ObayaShi21301593!@",
       "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246",
       "Proxy": {
         "Host": null,
@@ -25,13 +25,13 @@
     "Receivers": [ "hungnguyen21301593@gmail.com" ] // add emails of recervers here "blessme@protonmail.com"
   },
   "OutputFilePrefix": "output-",
-  "Mode": 0, // test:0 (run but dont post, delete), run: 1 (real run)
+  "Mode": 1, // test:0 (run but dont post, delete), run: 1 (real run)
   "AdGlobalSetting": {
     "Locations": [ "Ontario (M - Z)", "Toronto (GTA)" ],
     "SpecicalAdtitleSetting": [ "Epoxy","Flat" ],
     "Position": {
       "From": 1, // >= 1
-      "To": 40 // <= 1
+      "To": 2 // <= 1
     },
     "PauseDuringRun": false,
     "Timeout": 1,
