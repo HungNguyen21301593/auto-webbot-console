@@ -12,24 +12,33 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using WebDriverManager;
 using WebDriverManager.DriverConfigs.Impl;
+using Exception = System.Exception;
+using FireBaseAuthenticator.KijijiHelperServices;
+using FireBaseAuthenticator.Extensions;
 
 namespace AutoBot
 {
     class Program
     {
         private static IWebDriver _globalWebDriver;
+        private static IDeviceRegistrationService _deviceRegistrationService;
         private static AppSetting _globalSetting;
         private static readonly Random Random = new Random();
 
         static void Main(string[] args)
         {
             Console.WriteLine("Starting...");
+            var services = new ServiceCollection().AddFireBaseRegistrationDependencies().BuildServiceProvider();
+            _deviceRegistrationService = services.GetRequiredService<IDeviceRegistrationService>();
             var jsonText = File.ReadAllText("AppSetting.json");
             var config = JsonConvert.DeserializeObject<AppSetting>(jsonText);
-            Console.WriteLine($"Config: {JsonConvert.SerializeObject(config)}");
+            //Console.WriteLine($"Config: {JsonConvert.SerializeObject(config)}");
             _globalSetting = config;
+            Verify().Wait();
             SetConsoleOutput(config.OutputFilePrefix);
             Console.CancelKeyPress += delegate
             {
@@ -47,6 +56,7 @@ namespace AutoBot
             myProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.High;
             while (true)
             {
+                
                 foreach (var userSetting in config.UserSettings)
                 {
                     try
@@ -60,9 +70,8 @@ namespace AutoBot
                         {
                             Console.WriteLine($"Could not find any Ads from {config.AdGlobalSetting.Position.From}" +
                                  $" to {config.AdGlobalSetting.Position.To}");
-                            var randomValue = GetRandomScanEvery(config.AdGlobalSetting.Sleep.ScanEvery);
-                            Console.WriteLine($"Wait ScanEvery {randomValue} minutes");
-                            NonBlockedSleepInMinutes(randomValue);
+                            Console.WriteLine($"Wait ScanEvery {config.AdGlobalSetting.Sleep.ScanWhenFoundNothing} minutes");
+                            NonBlockedSleepInMinutes(config.AdGlobalSetting.Sleep.ScanWhenFoundNothing);
                             continue;
                         }
                         Console.WriteLine("******************************************************");
@@ -103,6 +112,16 @@ namespace AutoBot
                         var scanValue = GetRandomScanEvery(config.AdGlobalSetting.Sleep.ScanEvery);
                         Console.WriteLine($"Wait ScanEvery {scanValue} minutes");
                         NonBlockedSleepInMinutes(scanValue);
+
+                        var numberOfPost = GetNumberOfAllowAds().Result;
+                        var remainingNumberOfPosts = numberOfPost - 1;
+                        UpdateNumberOfAllowAds(remainingNumberOfPosts).Wait();
+                        Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                        Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                        Console.WriteLine($"Posted successfully! You have {remainingNumberOfPosts} posts remaining.");
+                        Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                        Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                        Verify().Wait();
                     }
                     catch (Exception e)
                     {
@@ -111,6 +130,56 @@ namespace AutoBot
                         Console.WriteLine($"Sent emails to {string.Join(", ", config.ErrorEmail.Receivers)}");
                     }
                 }
+            }
+        }
+
+        private static async Task Verify()
+        {
+            try
+            {
+                Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                var deviceInfo = await _deviceRegistrationService.GetDeviceInformation();
+                Console.WriteLine($"ExpiredDate: {deviceInfo.ExpiredDate}, RemainingPostLimit: {deviceInfo.RemainingPostLimit}");
+                Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                await _deviceRegistrationService.VerifyDevice();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("I regret to inform you that your device is currently expired or has surpassed the allowed re-post limit. If you wish to make additional re-posts, I kindly suggest contacting the developer to request an extension (5 USD ~ 1 month ~ 30 re-posts). The fee is small and will help me continue to work on the app, hope you understand. Payment can be made via PayPal (paypal.me/hunghung1404), and an extension will be applied to your account.");
+                Console.WriteLine($">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                Console.WriteLine($"Please press enter to close");
+                Console.ReadLine();
+                Environment.Exit(0);
+            }
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+        }
+
+        private static async Task<int> GetNumberOfAllowAds()
+        {
+            try
+            {
+                var deviceInfo = await _deviceRegistrationService.GetDeviceInformation();
+                return deviceInfo.RemainingPostLimit;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        private static async Task UpdateNumberOfAllowAds(int remainningPost)
+        {
+            try
+            {
+                await _deviceRegistrationService.UpdateNumberOfAllowAds(remainningPost);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
         }
 

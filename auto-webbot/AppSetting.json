@@ -8,8 +8,9 @@
   // Get more here: https://deviceatlas.com/blog/list-of-user-agent-strings
   "UserSettings": [
     {
-      "Email": "hungnguyen21301593@gmail.com", // "hungnguyen21301593@gmail.com",
-      "Pass": "ObayaShi21301593!@", // "ObayaShi21301593!@",
+      "Email": "hungnguyen21301593@gmail.com",
+      "Pass": "ObayaShi21301593!@",
+      "RegistrationId": "bcf89cc2-894f-47ac-8e7f-2d8d82d073a9", //bcf89cc2-894f-47ac-8e7f-2d8d82d073a9
       "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246",
       "Proxy": {
         "Host": null,
@@ -27,11 +28,11 @@
   "OutputFilePrefix": "output-",
   "Mode": 1, // test:0 (run but dont post, delete), run: 1 (real run)
   "AdGlobalSetting": {
-    "Locations": [ "Ontario (M - Z)", "Toronto (GTA)" ],
-    "SpecicalAdtitleSetting": [ "Epoxy","Flat" ],
+    "Locations": [ "Ontario (M - Z)", "Toronto (GTA)", "City of Toronto" ], //Manitoba, Winnipeg
+    "SpecicalAdtitleSetting": [ "Epoxy", "Flat" ],
     "Position": {
       "From": 1, // >= 1
-      "To": 2 // <= 1
+      "To": 3 // <= 1
     },
     "PauseDuringRun": false,
     "Timeout": 1,
@@ -45,50 +46,50 @@
       "ScanEvery": [
         {
           "DayOfWeek": 0, // sunday
-          "RandomFrom": 360,
-          "RandomTo": 420
+          "RandomFrom": 120,
+          "RandomTo": 200
         },
         {
           "DayOfWeek": 1, // monday
-          "RandomFrom": 540, // 9 hours
-          "RandomTo": 600 // 10 hours
+          "RandomFrom": 120, // 9 hours
+          "RandomTo": 200 // 10 hours
         },
         {
           "DayOfWeek": 2, // tuesday
-          "RandomFrom": 360,
-          "RandomTo": 420
+          "RandomFrom": 120,
+          "RandomTo": 200
         },
         {
           "DayOfWeek": 3, // wendnesday
-          "RandomFrom": 360,
-          "RandomTo": 420
+          "RandomFrom": 120,
+          "RandomTo": 200
         },
         {
           "DayOfWeek": 4, // thursay
-          "RandomFrom": 360,
-          "RandomTo": 420
+          "RandomFrom": 120,
+          "RandomTo": 200
         },
         {
           "DayOfWeek": 5, // fri
-          "RandomFrom": 360,
-          "RandomTo": 420
+          "RandomFrom": 120,
+          "RandomTo": 200
         },
         {
           "DayOfWeek": 6, // star
-          "RandomFrom": 360,
-          "RandomTo": 420
+          "RandomFrom": 120,
+          "RandomTo": 200
         }
       ],
       "ScanWhenFoundNothing": 5,
       "DelayBetweenEachRead": 1,
       "DelayAfterAllRead": 10, //10
-      "DelayBetweenEachDelete": 1,
+      "DelayBetweenEachDelete": 10,
       "DelayAfterAllDeleted": 20, //20
       "DelayAfterEachPost": {
         "From": 10,
         "To": 30
       },
-      "DelayAfterAllPost": 1,
+      "DelayAfterAllPost": 10,
       "SleepBetweenEachAction": 10000,
       "SleepInterval": 1
     }

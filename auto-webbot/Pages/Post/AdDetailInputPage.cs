@@ -35,6 +35,7 @@ namespace auto_webbot.Pages.Post
             private By PriceLocator = By.Id("PriceAmount");
             private By PostButtonLocator = By.CssSelector("button[type='submit']");
             private By companyLocator = By.Id("company_s");
+            private By phoneLocator = By.Id("PhoneNumber");
             private By carYearLocator = By.Id("caryear_i");
             private By carKmLocator = By.Id("carmileageinkms_i");
             private By selectBasicPackage = By.CssSelector("button[data-qa-id='package-0-bottom-select']");
@@ -44,12 +45,12 @@ namespace auto_webbot.Pages.Post
 
             public bool InputAdDetails(AdDetails adDetails)
             {
-                if (adDetails.AdTitle != null)
-                {
-                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-                    InputAdTitle(adDetails);
-                    Console.WriteLine("InputAdTitle");
-                }
+                //if (adDetails.AdTitle != null)
+                //{
+                //    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                //    InputAdTitle(adDetails);
+                //    Console.WriteLine("InputAdTitle");
+                //}
                 if (adDetails.Description != null)
                 {
                     Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
@@ -131,6 +132,13 @@ namespace auto_webbot.Pages.Post
                     InputCompany(adDetails);
                     Console.WriteLine("InputCompany");
                 }
+
+                if (adDetails.PhoneNumber != null)
+                {
+                    Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+                    InputPhone(adDetails);
+                    Console.WriteLine("InputPhone");
+                }
                 if (adDetails.DynamicTextOptions.Any())
                 {
                     InputDynamicInputs(adDetails);
@@ -205,7 +213,7 @@ namespace auto_webbot.Pages.Post
                 var element = webDriver.FindElements(AdTitleLocator);
                 if (!element.Any())
                 {
-                    Console.WriteLine("Could not dound AdTitleLocator");
+                    Console.WriteLine("Could not found AdTitleLocator");
                 }
                 element.First().Clear();
                 element.First().SendKeys(adDetails.AdTitle);
@@ -273,6 +281,16 @@ namespace auto_webbot.Pages.Post
                     }
                 }
                 Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            }
+
+            private void InputPhone(AdDetails adDetails)
+            {
+                var element = WebWaiter
+                                .Until(SeleniumExtras
+                                    .WaitHelpers
+                                    .ExpectedConditions
+                                    .ElementIsVisible(phoneLocator));
+                element.SendKeys(adDetails.PhoneNumber);
             }
 
             private void InputCompany(AdDetails adDetails)

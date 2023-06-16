@@ -44,5 +44,6 @@ namespace auto_webbot.Model
         public List<string> DynamicTextOptions { get; set; }
 
         public string Type { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }

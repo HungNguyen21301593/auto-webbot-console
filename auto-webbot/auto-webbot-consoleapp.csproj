@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>auto_webbot</RootNamespace>
   </PropertyGroup>
 
@@ -15,14 +15,10 @@
     <PackageReference Include="OpenQA.Selenium.Chrome.ChromeDriverExtensions" Version="1.2.0" />
     <PackageReference Include="Selenium.Support" Version="4.1.0" />
     <PackageReference Include="Selenium.WebDriver" Version="4.1.0" />
-    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="99.0.4844.5100" />
     <PackageReference Include="WebDriverManager" Version="2.12.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="AppSetting.prod.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="dumbell.PNG">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -35,10 +31,21 @@
     <None Update="Flat\test.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="images\test.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="windowsdesktop-runtime-6.0.2-win-x64.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="adpics\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Projects\fireBase-authenticator\FireBaseAuthenticator\FireBaseAuthenticator.csproj" />
+    <ProjectReference Include="..\..\..\Projects\FireBaseAuthenticator\FireBaseAuthenticator\FireBaseAuthenticator.csproj" />
   </ItemGroup>
 
 </Project>

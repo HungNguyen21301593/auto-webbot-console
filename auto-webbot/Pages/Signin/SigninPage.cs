@@ -18,9 +18,10 @@ namespace auto_webbot.Pages
             this.webDriver = webDriver;
         }
         private WebDriverWait WebWaiter => new WebDriverWait(webDriver, TimeSpan.FromSeconds(120));
-        private By EmailLocaltor = By.Id("emailOrNickname");
+        private By EmailLocaltor = By.XPath("//input[@id='emailOrNickname' or @id='username']");
         private By PassLocaltor = By.Id("password");
-        private By SubmitLocaltor = By.CssSelector("button[class*='signInButton']");
+        private By SubmitLocaltor = By.XPath("//button[contains(@class, 'signInButton') or @id='login-submit']");
+        // //button[contains(@class, "signInButton") or @id='login-submit']
 
 
         public void Login(string email, string pass)

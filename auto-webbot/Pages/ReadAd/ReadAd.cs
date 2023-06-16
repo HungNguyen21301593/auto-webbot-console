@@ -1,6 +1,7 @@
 ﻿using auto_webbot.Model;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
@@ -30,13 +31,18 @@ namespace auto_webbot.Pages.Delete
         private By tagsLocators = By.CssSelector("li[class*='tagItem']");
         private By addressLocator = By.Id("servicesLocationInput");
         private By locationLocator = By.CssSelector("div[class*='locationText-']");
-        private By imageLocators = By.CssSelector("img[class*='image-']");
+        private By imageLocators = By.CssSelector("#MediaUploadedImages .image-area .image");
         private By pictureLocators = By.TagName("picture");
         private By companyLocator = By.Id("company_s");
         private By typeLocator = By.Id("type_s");
+        private By phoneNumberRevealLocator = By.CssSelector("div[class*='profileItem-']");
+        private By phoneNumberLocator = By.CssSelector("span[class*='phoneShowNumberButton-']");
 
         private By carYearLocator = By.Id("caryear_i");
         private By carKmLocator = By.Id("carmileageinkms_i");
+        private By phoneLocator = By.Id("PhoneNumber");
+
+        
 
         private List<By> dynamicLabelsLocators = new List<By> {
             By.CssSelector("div[data-qa-id='active-listings-stat-line']"),
@@ -91,13 +97,15 @@ namespace auto_webbot.Pages.Delete
             ReadDynamicsTexts(adDetails);
             Console.WriteLine($"ReadDynamicsTexts {JsonConvert.SerializeObject(adDetails)}");
 
+           
+
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadAdTitle(adDetails);
             Console.WriteLine($"ReadAdTitle {JsonConvert.SerializeObject(adDetails)}");
 
-            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-            DownloadPics(adDetails);
-            Console.WriteLine($"DownloadPics {JsonConvert.SerializeObject(adDetails)}");
+            //Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            //DownloadPics(adDetails);
+            //Console.WriteLine($"DownloadPics {JsonConvert.SerializeObject(adDetails)}");
 
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             var editAd = webDriver.FindElements(EditAdLocator);
@@ -105,11 +113,14 @@ namespace auto_webbot.Pages.Delete
             {
                 editAd.First().Click();
             }
-           
+
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            DownloadPics(adDetails);
+            Console.WriteLine($"DownloadPics {JsonConvert.SerializeObject(adDetails)}");
+
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadCategories(adDetails);
             Console.WriteLine($"ReadCategories {JsonConvert.SerializeObject(adDetails)}");
-            
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadAdDescription(adDetails);
             Console.WriteLine($"ReadAdDescription {JsonConvert.SerializeObject(adDetails)}");
@@ -137,6 +148,9 @@ namespace auto_webbot.Pages.Delete
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
             ReadCarKm(adDetails);
             Console.WriteLine($"ReadCarKm {JsonConvert.SerializeObject(adDetails)}");
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            ReadPhoneNumber(adDetails);
+            Console.WriteLine($"ReadPhoneNumber: {JsonConvert.SerializeObject(adDetails)}");
             return adDetails;
         }
 
@@ -154,6 +168,13 @@ namespace auto_webbot.Pages.Delete
                     }
                 }
             }
+        }
+
+        private void ReadPhoneNumber(AdDetails adDetails)
+        {
+            Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
+            var phoneNumber = webDriver.FindElement(phoneLocator);
+            adDetails.PhoneNumber = phoneNumber.GetAttribute("value");
         }
 
         private void ReadTypes(AdDetails adDetails)
@@ -241,19 +262,14 @@ namespace auto_webbot.Pages.Delete
         {
             var inputPicturePaths = new List<string>();
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
-            var pictures = webDriver.FindElements(pictureLocators);
-            if (!pictures.Any()) return inputPicturePaths;
+            var allImages = webDriver.FindElements(imageLocators);
+            if (!allImages.Any()) { return inputPicturePaths; }
             Thread.Sleep(config.AdGlobalSetting.Sleep.SleepBetweenEachAction);
 
             var urls = new List<string>();
-            foreach (var picture in pictures)
+            foreach (var image in allImages)
             {
-                var images = picture.FindElements(imageLocators);
-                if (!images.Any())
-                {
-                    continue;
-                }
-                var url = images.First().GetAttribute("src");
+                var url = image.GetAttribute("data-large-url");
                 if (url is null)
                 {
                     continue;
@@ -263,20 +279,19 @@ namespace auto_webbot.Pages.Delete
             using var client = new WebClient();
             foreach (var url in urls.Distinct())
             {
-                var fileName = $"{Guid.NewGuid()}.JPG ";
+                var fileName = $"{Guid.NewGuid()}.JPG";
                 client.DownloadFile(url, fileName);
-                var savedPath = $"{Directory.GetCurrentDirectory()}\\AdPics\\{fileName}";
-                if (new FileInfo(fileName).Length < 10000)//20000b
+                var savedPath = Path.GetFullPath(Path.Combine($"{Environment.CurrentDirectory}/images", fileName));
+                if (new FileInfo(fileName).Length < 10000)
                 {
                     File.Delete(fileName);
                     continue;
                 }
-                else
-                {
-                    File.Move(fileName, savedPath);
-                }
+                File.Move(fileName, savedPath);
                 inputPicturePaths.Add(Path.GetFullPath(savedPath));
             }
+            var action = new Actions(webDriver);
+            action.SendKeys(Keys.Escape);
             return inputPicturePaths;
         }
 

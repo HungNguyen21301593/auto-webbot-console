@@ -59,7 +59,7 @@ namespace auto_webbot.Pages.Post
                 {
                     throw new Exception("Could not find categoryButtons");
                 }
-                categoryButtons.Where(b => b.Text == category).FirstOrDefault().Click();
+                categoryButtons.Where(b => b.Text == category).LastOrDefault().Click();
             }
             if (config.AdGlobalSetting.Locations != null)
             {

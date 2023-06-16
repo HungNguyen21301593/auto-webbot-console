@@ -16,6 +16,7 @@ namespace auto_webbot.Model
     {
         public string Email { get; set; }
         public string Pass { get; set; }
+        public Guid RegistrationId { get; set; }
         public string UserAgent { get; set; }
         public Proxy Proxy { get; set; }
     }
